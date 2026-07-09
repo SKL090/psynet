@@ -1,0 +1,13 @@
+/*.dmb
+/*.rsc
+/*.int
+/*.lk
+/data/logs
+/.vscode/launch.json
+/.vscode/tasks.json
+*.log
+*.int
+*.rsc
+*.dmb
+*.lk
+*.zip
