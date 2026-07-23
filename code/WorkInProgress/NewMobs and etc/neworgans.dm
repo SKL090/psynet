@@ -1,5 +1,5 @@
 // ============================
-// neworgans.dm — ПОЛНАЯ СИСТЕМА ОРГАНОВ + ПЕРЕЛОМЫ + ОТРУБАНИЕ + РАЗРЫВ
+// neworgans.dm — ПОЛНАЯ СИСТЕМА ОРГАНОВ + ПЕРЕЛОМЫ + ОТРУБАНИЕ + РАЗРЫВ (ФИНАЛ)
 // ============================
 
 /datum/organ
@@ -145,6 +145,7 @@
 	var/datum/organ/internal/heart
 	var/datum/organ/internal/lungs
 	var/datum/organ/internal/liver
+
 /datum/organ/external/vitals
 	name = "vitals"
 	icon_name = "vitals"
@@ -280,7 +281,7 @@
 			H << "\red <B>Your [side] eye is destroyed!"
 			H.eye_blurry = max(H.eye_blurry, 10)
 		if("destroyed")
-			H << "\red <B>Your [side] eye socket is empty!</B>"
+			H << "\red <B>Your [side] eye socket is empty!"
 			H.eye_blind = max(H.eye_blind, 5)
 
 /proc/process_heart(datum/organ/internal/heart/HT, mob/living/carbon/human/H)
@@ -389,27 +390,28 @@
 
 	// === ДРОБЯЩИЙ РАЗРЫВ КОНЕЧНОСТЕЙ ===
 	if(dmg_type == DAMAGE_CRUSH && brute >= 18 && !destroyed)
-		var/explode_chance = (brute - 10) * 1.0
-		if(brute_dam > max_damage * 0.4)
-			explode_chance *= 1.5
-		if(brute_dam > max_damage * 0.6)
-			explode_chance *= 2.0
-		if(brute_dam > max_damage * 0.8)
-			explode_chance *= 2.5
-		if(name in list("head"))
-			explode_chance *= 3
-		if(name in list("l_hand", "r_hand", "l_foot", "r_foot"))
-			explode_chance *= 2.0
-		if(supbrute)
-			explode_chance *= 1.5
+		if(!(name in list("vitals", "neck")))  // Только шея и живот не разрываются
+			var/explode_chance = (brute - 10) * 1.0
+			if(brute_dam > max_damage * 0.4)
+				explode_chance *= 1.5
+			if(brute_dam > max_damage * 0.6)
+				explode_chance *= 2.0
+			if(brute_dam > max_damage * 0.8)
+				explode_chance *= 2.5
+			if(name in list("head"))
+				explode_chance *= 3
+			if(name in list("l_hand", "r_hand", "l_foot", "r_foot"))
+				explode_chance *= 2.0
+			if(supbrute)
+				explode_chance *= 1.5
 
-		if(prob(explode_chance))
-			if(owner)
-				for(var/mob/M in viewers(owner))
-					M.show_message("\red <B>[owner.name]'s [display_name] explodes in a shower of gore!</B>")
-			destroyed = 1
-			droplimb_gib()
-			return
+			if(prob(explode_chance))
+				if(owner)
+					for(var/mob/M in viewers(owner))
+						M.show_message("\red <B>[owner.name]'s [display_name] explodes in a shower of gore!</B>")
+				destroyed = 1
+				droplimb_gib()
+				return
 
 	// ПРИМЕНЕНИЕ УРОНА
 	if ((brute_dam + burn_dam + brute + burn) < max_damage)
@@ -539,7 +541,7 @@
 	// ===== УДАР В ПАХ =====
 	if(name == "groin" && brute >= 5 && owner && ishuman(owner) && !destroyed)
 		var/mob/living/carbon/human/H = owner
-		if(H.stat != 2)  // Живой
+		if(H.stat != 2)
 			if(H.gender == MALE)
 				H.stunned = max(H.stunned, 8)
 				H.weakened = max(H.weakened, 5)
@@ -552,7 +554,7 @@
 				playsound(H.loc, pick('sound/voice/balls1.ogg','sound/voice/balls2.ogg'), 50, 0)
 				H.pain("пах", 70, 1)
 
-	// ===== УДАР В ЖИВОТ =====
+	// ===== УДАР В ЖИВОТ (vitals) =====
 	if(istype(src, /datum/organ/external/vitals) && brute >= 5 && owner && ishuman(owner) && !destroyed)
 		var/mob/living/carbon/human/H = owner
 		if(H.stat != 2)
@@ -574,13 +576,13 @@
 					H.losebreath += 3
 					H.weakened = max(H.weakened, 3)
 					spawn(5)
-					if(H.stat != 2)
-						H.vomit(0)
+						if(H.stat != 2)
+							H.vomit(0)
 					if(prob(20) && V.stomach.status == "healthy")
 						V.stomach.status = "bruised"
 						V.stomach.health = max(0, V.stomach.health - 20)
 
-	// ===== ВНУТРЕННИЕ ОРГАНЫ =====
+	// ===== ВНУТРЕННИЕ ОРГАНЫ ГРУДИ (только сердце и лёгкие) =====
 	if(owner && ishuman(owner) && istype(src,/datum/organ/external/chest) && brute >= 10 && !destroyed)
 		var/mob/living/carbon/human/H = owner
 		var/datum/organ/external/chest/C = src
@@ -588,16 +590,31 @@
 			var/organ_chance = brute * (dmg_type == DAMAGE_PIERCE ? 1.5 : 0.8)
 			if(prob(organ_chance))
 				var/list/orgs = list()
-				// Органы груди
 				if(istype(C.heart)) orgs += C.heart
 				if(istype(C.lungs)) orgs += C.lungs
-				// Органы живота из vitals
-				var/datum/organ/external/vitals/V = H.organs["vitals"]
-				if(V)
-					if(istype(V.kidney_left)) orgs += V.kidney_left
-					if(istype(V.kidney_right)) orgs += V.kidney_right
-					if(istype(V.stomach)) orgs += V.stomach
-					if(istype(V.intestines)) orgs += V.intestines
+				if(istype(C.liver)) orgs += C.liver
+				if(orgs.len)
+					var/datum/organ/internal/O = pick(orgs)
+					O.health = max(0, O.health - brute * (dmg_type == DAMAGE_PIERCE ? 2 : 1))
+					if(O.health <= 0) O.status = "destroyed"
+					else if(O.health < 25) O.status = "ruptured"
+					else if(O.health < 50) O.status = "damaged"
+					else if(O.health < 75) O.status = "bruised"
+					H.visible_message("<span class='danger'><B>Повреждён внутренний орган [H]! ([O.name])</B></span>")
+					H.pain(O.name, 50, 1)
+
+	// ===== ВНУТРЕННИЕ ОРГАНЫ ЖИВОТА (почки, желудок, кишечник) =====
+	if(owner && ishuman(owner) && istype(src,/datum/organ/external/vitals) && brute >= 10 && !destroyed)
+		var/mob/living/carbon/human/H = owner
+		var/datum/organ/external/vitals/V = src
+		if(dmg_type == DAMAGE_CUT || dmg_type == DAMAGE_PIERCE)
+			var/organ_chance = brute * (dmg_type == DAMAGE_PIERCE ? 1.5 : 0.8)
+			if(prob(organ_chance))
+				var/list/orgs = list()
+				if(istype(V.kidney_left)) orgs += V.kidney_left
+				if(istype(V.kidney_right)) orgs += V.kidney_right
+				if(istype(V.stomach)) orgs += V.stomach
+				if(istype(V.intestines)) orgs += V.intestines
 				if(orgs.len)
 					var/datum/organ/internal/O = pick(orgs)
 					O.health = max(0, O.health - brute * (dmg_type == DAMAGE_PIERCE ? 2 : 1))
@@ -622,6 +639,7 @@
 			if(HD.brain.health <= 0)
 				HD.brain.status = "destroyed"
 				H.visible_message("<span class='danger'><B>Мозг [H] разрушен! Мгновенная смерть!</B></span>")
+				H.health = -999
 				H.death()
 				return
 			else if(HD.brain.health < 25)

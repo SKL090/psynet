@@ -1854,12 +1854,16 @@
 // ============================
 /mob/living/carbon/human/Move()
 	. = ..()
-	if(. && bloodloss > 5 && prob(bloodloss * 2))
-		var/turf/T = get_turf(src)
-		if(T && !T.density)
-			var/obj/decal/cleanable/blood/tracks/TR = new(T)
-			TR.blood_DNA = dna?.unique_enzymes
-			TR.blood_type = b_type
+	if(.)
+		if(bloodloss > 5 && prob(bloodloss * 2))
+			var/turf/T = get_turf(src)
+			if(T && !T.density)
+				var/obj/decal/cleanable/blood/tracks/TR = new(T)
+				TR.blood_DNA = dna?.unique_enzymes
+				TR.blood_type = b_type
+
+//		if(fov_enabled)
+//			gurps_fov_apply()
 
 // ============================
 // СМЕРТЬ

@@ -24,7 +24,6 @@
 			paralysis = max(paralysis, 10)
 			visible_message("<span class='danger'>[src] теряет сознание от боли!</span>")
 			return
-	// =============================================
 
 	// ===== ЗВУК СМЕРТИ =====
 	if(!gibbed)

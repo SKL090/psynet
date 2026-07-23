@@ -24,8 +24,6 @@
 				domutcheck(src,null,1)
 
 /mob/living/carbon/human/handle_regular_hud_updates()
-	if(!fov_image)
-		gurps_init_fov()
 	if (stat == 2 || mutations & 4)
 		sight |= SEE_TURFS
 		sight |= SEE_MOBS
@@ -208,7 +206,7 @@
 			paralysis = 10
 
 	gurps_regen_endurance()
-	gurps_process_fov()
+// 	gurps_fov_apply()
 
 	UpdateDamage()
 	update_clothing()
