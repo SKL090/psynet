@@ -1870,21 +1870,6 @@
 // ============================
 /mob/living/carbon/human/death(gibbed)
 	..()
-	if(!gibbed && loc && isturf(loc))
-		var/should_bleed = FALSE
-		for(var/organ_name in organs)
-			var/datum/organ/external/E = organs[organ_name]
-			if(istype(E))
-				if(E.artery_cut || E.destroyed)
-					should_bleed = TRUE
-					break
-
-		if(should_bleed)
-			var/obj/decal/cleanable/blood/pool/P = locate() in loc
-			if(!P)
-				P = new /obj/decal/cleanable/blood/pool(loc)
-				if(dna)
-					P.blood_DNA = dna.unique_enzymes
-				P.blood_type = b_type
-			P.blood_amount += bloodloss * 0.5
-			P.update_pool()
+	// Лужи крови не создаются от самой смерти. Их создают только:
+	// 1) рассечение артерии; 2) отсечение или разрыв части тела.
+	// Это предотвращает появление луж при любой обычной смерти.
