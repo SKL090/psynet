@@ -1,0 +1,199 @@
+"av" = (/obj/landmark/start{name = "Barman"},/turf/simulated/floor/lw/bar2r{dir = 1},/area/admin)
+"aw" = (/turf/simulated/floor/lw/brothel{dir = 10},/area/admin)
+"ba" = (/obj/landmark/start{name = "Head of Security"},/turf/simulated/floor/lw/os2,/area/admin)
+"cE" = (/obj/landmark/start{name = "Chief Engineer"},/turf/simulated/floor/lw/bar2r{dir = 8},/area/admin)
+"cG" = (/obj/grille,/obj/window,/obj/window/basic/north,/turf/simulated/floor/lw/alien,/area/admin)
+"cK" = (/mob/living/carbon/human,/turf/simulated/floor/lw/brothel{dir = 10},/area/admin)
+"cP" = (/obj/landmark/start{name = "Hydroponicist"},/turf/simulated/floor/lw/alien,/area/admin)
+"da" = (/obj/landmark/start{name = "Chemist"},/turf/simulated/floor/lw/bar2r{dir = 8},/area/admin)
+"gi" = (/turf/simulated/floor/lw/alien,/area/admin)
+"ha" = (/turf/simulated/floor/lw/n01,/area/admin)
+"hj" = (/obj/landmark/start{name = "Counselor"},/turf/simulated/floor/lw/bar2r{dir = 1},/area/admin)
+"iu" = (/obj/landmark/start{name = "Engineer"},/turf/simulated/floor/lw/alien,/area/admin)
+"iS" = (/obj/landmark/start{name = "Research Director"},/turf/simulated/floor/lw/os4,/area/admin)
+"jL" = (/obj/table{icon_state = "reinf_1tilethick"; dir = 8},/obj/item/weapon/gurps/sword,/turf/simulated/floor/lw/bluestone2,/area/admin)
+"jU" = (/obj/landmark/start{name = "Geneticist"},/turf/simulated/floor/lw/alien,/area/admin)
+"ka" = (/mob/living/carbon/human,/turf/simulated/floor/lw/alien{icon_state = "brothel"},/area/admin)
+"kg" = (/obj/landmark/start{name = "Captain"},/turf/simulated/floor/lw/bar2r{dir = 1},/area/admin)
+"lH" = (/turf/simulated/floor/lw/alien{icon_state = "os13"},/area/admin)
+"lY" = (/obj/window/basic/north,/turf/simulated/floor/lw/alien,/area/admin)
+"ma" = (/turf/simulated/floor/lw/nfloorz2{dir = 9},/area/admin)
+"nl" = (/mob/living/carbon/human{name = "Hitler"},/turf/simulated/floor/lw/brothel{dir = 9},/area/admin)
+"nz" = (/obj/table{icon_state = "reinf_1tileendtable"; dir = 4},/obj/item/weapon/gurps/axe,/turf/simulated/floor/lw/brothel{dir = 10},/area/admin)
+"pQ" = (/obj/landmark/start{name = "Roboticist"},/turf/simulated/floor/lw/bluestone3,/area/admin)
+"ql" = (/obj/machinery/light{brightnessblue = 8; brightnessgreen = 6; brightnessred = 6; dir = 8; icon_state = "tube1"; name = "blue tinted light fixture"; tag = "icon-tube1 (WEST)"},/turf/simulated/floor/lw/plazaf2,/area/admin)
+"qP" = (/turf/simulated/floor/lw/os2,/area/admin)
+"rr" = (/obj/landmark/start{name = "Head of Personnel"},/turf/simulated/floor/lw/os4,/area/admin)
+"sg" = (/obj/table{icon_state = "reinf_1tilethick"; dir = 8},/obj/item/weapon/gurps/dagger,/turf/simulated/floor/lw/bloodbar,/area/admin)
+"sU" = (/obj/landmark/start{name = "Chef"},/turf/simulated/floor/lw/bar2r{dir = 1},/area/admin)
+"tm" = (/turf/simulated/floor/lw/bloodbar,/area/admin)
+"ux" = (/turf/simulated/floor/lw/bet{dir = 1},/area/admin)
+"va" = (/obj/landmark/start{name = "Clown"},/turf/simulated/floor/lw/bar2r{dir = 1},/area/admin)
+"vh" = (/turf/simulated/floor/lw/bar2{dir = 8},/area/admin)
+"wN" = (/turf/simulated/floor/lw/nfloorz2{dir = 10},/area/admin)
+"yu" = (/turf/simulated/floor/lw/bet{dir = 4},/area/admin)
+"yy" = (/turf/simulated/floor/lw/alien{icon_state = "brothel"},/area/admin)
+"yE" = (/turf/simulated/floor/lw/bluestone2,/area/admin)
+"zH" = (/obj/table{icon_state = "reinf_1tilethick"; dir = 8},/obj/item/weapon/gurps/club,/turf/simulated/floor/lw/bluestone2,/area/admin)
+"AL" = (/turf/simulated/floor/lw/plazaf,/area/admin)
+"AV" = (/turf/simulated/floor/lw/brothel{dir = 6},/area/admin)
+"Bv" = (/obj/table{icon_state = "reinf_1tilethick"; dir = 8},/obj/item/weapon/gurps/knife,/turf/simulated/floor/lw/bloodbar,/area/admin)
+"BO" = (/mob/living/carbon/human{name = "MotherFucker"},/turf/simulated/floor/lw/brothel{dir = 10},/area/admin)
+"Er" = (/obj/landmark/start{name = "Scientist"},/turf/simulated/floor/lw/os4,/area/admin)
+"EP" = (/mob/living/carbon/human,/turf/simulated/floor/lw/brothel{dir = 1},/area/admin)
+"FD" = (/obj/table{icon_state = "reinf_1tileendtable"; dir = 8},/obj/item/weapon/gun/gurps,/turf/simulated/floor/lw/alien{icon_state = "brothel"},/area/admin)
+"Gw" = (/obj/landmark/start{name = "Security Officer"},/turf/simulated/floor/lw/os2,/area/admin)
+"GB" = (/turf/simulated/floor/lw/n00,/area/admin)
+"JP" = (/obj/landmark/start{name = "Janitor"},/obj/machinery/light{brightnessblue = 8; brightnessgreen = 6; brightnessred = 6; dir = 8; icon_state = "tube1"; name = "blue tinted light fixture"; tag = "icon-tube1 (WEST)"},/turf/simulated/floor/lw/os2,/area/admin)
+"MD" = (/obj/machinery/light{brightnessblue = 8; brightnessgreen = 6; brightnessred = 6; dir = 8; icon_state = "tube1"; name = "blue tinted light fixture"; tag = "icon-tube1 (WEST)"},/turf/simulated/floor/lw/alien{icon_state = "nfloorz2"},/area/admin)
+"Nm" = (/turf/simulated/floor/lw/os4,/area/admin)
+"Nw" = (/turf/simulated/floor/lw/nfloorz2{dir = 1},/area/admin)
+"Oz" = (/turf/simulated/floor/lw/alien{icon_state = "nfloorz2"},/area/admin)
+"OC" = (/obj/machinery/light{brightnessblue = 8; brightnessgreen = 6; brightnessred = 6; dir = 8; icon_state = "tube1"; name = "blue tinted light fixture"; tag = "icon-tube1 (WEST)"},/turf/simulated/floor/lw/alien,/area/admin)
+"Rp" = (/obj/landmark/start{name = "Quartermaster"},/turf/simulated/floor/lw/bluestone3,/area/admin)
+"RK" = (/obj/landmark/start{name = "Atmospheric Technician"},/turf/simulated/floor/lw/bar2r{dir = 8},/area/admin)
+"Sl" = (/obj/landmark/start,/turf/space,/area)
+"Sq" = (/turf/unsimulated/wall,/area)
+"Tp" = (/obj/landmark/start{name = "Unassigned"},/turf/simulated/floor/lw/os2,/area/admin)
+"Ul" = (/turf/simulated/floor/lw/bluestone3,/area/admin)
+"UJ" = (/turf/simulated/floor/lw/plazaf2,/area/admin)
+"UX" = (/obj/landmark/start{name = "Forensic Technician"},/obj/machinery/light{brightnessblue = 8; brightnessgreen = 6; brightnessred = 6; dir = 8; icon_state = "tube1"; name = "blue tinted light fixture"; tag = "icon-tube1 (WEST)"},/turf/simulated/floor/lw/os2,/area/admin)
+"VK" = (/turf/simulated/wall,/area/admin)
+"WM" = (/obj/machinery/light{brightnessblue = 8; brightnessgreen = 6; brightnessred = 6; dir = 8; icon_state = "tube1"; name = "blue tinted light fixture"; tag = "icon-tube1 (WEST)"},/turf/simulated/floor/lw/nfloorz2{dir = 9},/area/admin)
+"Xx" = (/obj/landmark/start{name = "Medical Doctor"},/turf/simulated/floor/lw/os4,/area/admin)
+"XF" = (/turf/unsimulated/wall{icon = 'icons/misc/fullscreen.dmi'; icon_state = "title"; name = "Space Station 13"},/area)
+"XQ" = (/turf/simulated/floor/lw/bar2{dir = 1},/area/admin)
+"Zy" = (/turf/space,/area)
+
+(1,1,1) = {"
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyVKVKVKVKVKVKVKVKVKVKVKVKVKVKVKVKVKZyZy
+ZyVKlHlHlHlHlHlHlHlHVKOzwNOzOzOzOzVKZyZy
+ZyVKgiEPkaBOcKkanlgiVKOzOzOzNwOzWMVKZyZy
+ZyVKqlAVyEtmtmyEyyUJVKOzNwOzwNmaOzVKZyZy
+ZyVKALyytmyEyEtmyyALVKwNOzNwOzOzOzVKZyZy
+ZyVKUJnzzHsgBvjLFDqlVKMDwNOzNwOzOzVKZyZy
+ZyVKgiawawawawyyawgiVKOzOzOzOzwNOzVKZyZy
+ZyVKlHlHlHlHlHlHlHlHVKOzOzOzwNOzOzVKZyZy
+ZyVKVKcGVKuxyuVKcGVKVKlYlYlYgilYlYVKZyZy
+ZyVKhjdasUavRKkgcEvaVKOCgigigigigiVKZyZy
+ZyVKiuqPqPUlGBhaGBUXVKgigigigigigiVKZyZy
+ZyVKbahaUlUlUlGBqPjUgigigigigigigiVKZyZy
+ZyVKcPGBqPUlhaUlNmrrVKgigigigigigiVKZyZy
+ZyVKJPXxRpiSpQErGwTpVKgigigigigigiVKZyZy
+ZyVKXQvhXQXQXQvhXQvhVKgigigigiOCgiVKZyZy
+ZyVKVKVKVKVKVKVKVKVKVKVKVKVKVKVKVKVKZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+"}
+(1,1,2) = {"
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+"}
+(1,1,3) = {"
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+"}
+(1,1,4) = {"
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+"}
+(1,1,5) = {"
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+"}
+(1,1,6) = {"
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZySqZySqSqSqZyZyZySqSqSqZySqZyZyZyZy
+ZyZySqZyZySqZyZySqZySqZyZyZyZyZySqZyZyZy
+ZyZySqZyZySqZyZySqZySqZyZyZyZyZySqZyZyZy
+ZyZySqZyZySqSqSqZyZyZySqSqZyZyZySqZyZyZy
+ZyZySqZyZySqZyZySqZyZyZyZySqZyZySqZyZyZy
+ZyZySqZyZySqZyZySqZyZyZyZySqZyZySqZyZyZy
+ZyZySqZyZySqSqSqZyZySqSqSqZyZyZySqZyZyZy
+ZyZySqZyZyZyZyZyZySlZyZyZyZyZyZySqZyZyZy
+ZyZySqZyZyZySqZyZyZyZySqSqZyZyZySqZyZyZy
+ZyZySqZyZySqSqZyZyZySqZyZySqZyZySqZyZyZy
+ZyZySqZyZyZySqZyZyZyZyZyZySqZyZySqZyZyZy
+ZyZySqZyZyZySqZyZyZyZyZySqZyZyZySqZyZyZy
+ZyZySqZyZyZySqZyZyZyZySqZyZyZyZySqZyZyZy
+ZyZySqZyZyZySqZyZyZySqZyZyZyZyZySqZyZyZy
+ZyZyXFSqZySqSqSqZyZySqSqSqSqZySqZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+ZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZyZy
+"}

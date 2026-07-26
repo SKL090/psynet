@@ -1,3 +1,6 @@
+// ============================
+// vomit.dm — РВОТА С СООБЩЕНИЯМИ
+// ============================
 /obj/decal/cleanable/vomit
 	name = "vomit"
 	density = 0
@@ -9,7 +12,6 @@
 	var/vomitter
 
 /mob/living/carbon/human/proc/vomit(var/returns = 0)
-	// Мёртвые не блюют
 	if(stat == 2) return
 
 	var/message = "<B>[src]</B> "
@@ -43,3 +45,27 @@
 
 	for (var/mob/O in viewers(src, null))
 		O.show_message(message, 1)
+
+// ============================================
+// GURPS: РВОТА ОТ УДАРА В ЖИВОТ
+// ============================================
+/mob/living/carbon/human/proc/gurps_vomit_from_hit(mob/living/carbon/human/attacker)
+	if(stat == 2) return
+
+	visible_message(
+		"<span class='danger'><B>Удар в живот [src] вызывает рвоту!</B></span>",
+		"<span class='danger'><B>Удар в живот! Вас сейчас вырвет!</B></span>"
+	)
+	losebreath += 3
+	weakened = max(weakened, 3)
+	spawn(5)
+		if(nutrition > 0)
+			vomit(0)
+		else
+			// Нечем блевать — корчится в позывах
+			visible_message(
+				"<span class='warning'>[src] корчится в позывах рвоты, но не может ничего исторгнуть!</span>"
+			)
+			confused = max(confused, 5)
+			stunned = max(stunned, 2)
+			losebreath += 2

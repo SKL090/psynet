@@ -306,14 +306,24 @@
 			if(prob(1))
 				var/word = pick("dizzy","woosey","faint")
 				src << "\red You feel [word]"
+			// GURPS: лёгкое головокружение и расплывчатое зрение
+			eye_blurry = max(eye_blurry, 2)
+			if(prob(10))
+				dizziness = max(dizziness, 10)
 		else if(lol <= 336 && lol > 244)
 			if(!pale)
 				updatepale()
 				pale = 1
 			eye_blurry += 6
+			// GURPS: сильное головокружение
+			dizziness = max(dizziness, 20)
 			if(prob(15))
 				paralysis += rand(1,3)
 		else if(lol <= 244 && lol > 122)
+			// GURPS: почти потеря сознания от кровопотери
+			eye_blurry = max(eye_blurry, 15)
+			dizziness = max(dizziness, 50)
+			confused = max(confused, 10)
 			if(toxloss <= 100)
 				toxloss = 100
 		else if(lol <= 122)

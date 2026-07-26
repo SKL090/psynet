@@ -1,5 +1,5 @@
 // ============================
-// gurps_guns.dm — GURPS ДАЛЬНИЙ БОЙ (РЕВОЛЬВЕР С ГИЛЬЗАМИ И ПУЛЯМИ)
+// gurps_guns.dm — GURPS ДАЛЬНИЙ БОЙ (РЕВОЛЬВЕР + ПИСТОЛЕТ)
 // ============================
 
 // ============================================
@@ -95,7 +95,6 @@
 /obj/item/weapon/ammo/gurps/attackby(obj/item/weapon/ammo/gurps/A, mob/user)
 	if(istype(A, /obj/item/weapon/ammo/gurps))
 		if(A.type == src.type && src != A)
-			// Определяем какой в руке
 			var/obj/item/weapon/ammo/gurps/in_hand = null
 			var/obj/item/weapon/ammo/gurps/other = null
 
@@ -168,77 +167,6 @@
 /obj/item/weapon/ammo/gurps/brass/New()
 	..()
 	dir = pick(NORTH, SOUTH, EAST, WEST)
-
-// ============================================
-// ПУЛЯ GURPS
-// ============================================
-/obj/projectile/bullet/gurps
-	name = "пуля"
-	icon = 'icons/effects/projectiles.dmi'
-	icon_state = "bullet"
-	var/mob/living/carbon/human/shooter = null
-	var/original_zone = "chest"
-	var/gurps_damage = 0
-	var/gurps_damage_type = DAMAGE_PIERCE
-	var/is_crit = FALSE
-
-/obj/projectile/bullet/gurps/process()
-	if(!shooter)
-		del(src)
-		return
-
-	var/turf/step = get_step(src, dir)
-	if(step)
-		loc = step
-	else
-		del(src)
-		return
-
-	for(var/mob/living/carbon/human/target in loc)
-		if(target == shooter) continue
-		hit_target(target)
-		del(src)
-		return
-
-	if(loc == current)
-		shooter.visible_message("<span class='warning'>Пуля пролетает мимо цели!</span>")
-		del(src)
-		return
-
-/obj/projectile/bullet/gurps/proc/hit_target(mob/living/carbon/human/target)
-	if(!target || !shooter) return
-
-	var/zone = gurps_normalize_zone(original_zone)
-	var/zone_name = gurps_zone_name_combat(original_zone)
-
-	var/datum/organ/external/E = target.organs[zone]
-	if(!E) E = target.organs["chest"]
-
-	if(E && !E.destroyed)
-		var/was_broken = E.broken
-		var/was_artery = E.artery_cut
-		var/was_tendon = E.tendon_damaged
-
-		E.take_damage(gurps_damage, 0, 0, gurps_damage_type, is_crit)
-		target.UpdateDamageIcon()
-		target.updatehealth()
-		target.lastattacker = shooter
-
-		var/effect_msg = gurps_determine_effect(E, was_broken, was_artery, was_tendon, is_crit)
-
-		var/msg_others = "<span class='danger'>В [zone_name] [target] попадает пуля!</span>"
-		var/msg_self = "<span class='danger'>В вашу [zone_name] попадает пуля!</span>"
-
-		if(effect_msg)
-			msg_others += " <span class='danger'>[effect_msg]</span>"
-			msg_self += " <span class='danger'>[effect_msg]</span>"
-		else
-			msg_others += " <span class='notice'>Заурядное попадание.</span>"
-			msg_self += " <span class='notice'>Заурядное попадание.</span>"
-
-		target.visible_message(msg_others, msg_self)
-	else
-		shooter.visible_message("<span class='warning'>Пуля попадает в [target], но конечность уничтожена!</span>")
 
 // ============================================
 // РЕВОЛЬВЕР
@@ -345,26 +273,50 @@
 			user.visible_message("<span class='warning'>Пуля пролетает мимо [target]!</span>")
 		return
 
-	var/obj/projectile/bullet/gurps/bullet = new /obj/projectile/bullet/gurps(user.loc)
-	bullet.shooter = H
-	bullet.gurps_damage = gurps_damage + (H.gurps_strength - 10) / 2
-	bullet.gurps_damage_type = gurps_damage_type
-	bullet.is_crit = attack["crit"]
+	if(ishuman(target))
+		var/mob/living/carbon/human/target_human = target
+		var/zone = "chest"
+		if(H.zone_sel && istype(H.zone_sel, /obj/screen/zone_sel))
+			zone = H.zone_sel.selecting
 
-	if(H.zone_sel && istype(H.zone_sel, /obj/screen/zone_sel))
-		bullet.original_zone = H.zone_sel.selecting
-	else
-		bullet.original_zone = "chest"
+		var/original_zone = zone
+		zone = gurps_normalize_zone(zone)
+		var/zone_name = gurps_zone_name_combat(original_zone)
 
-	var/turf/T = user.loc
-	var/turf/U = (istype(target, /atom/movable) ? target.loc : target)
-	if(U && T)
-		bullet.current = U
-		bullet.yo = U.y - T.y
-		bullet.xo = U.x - T.x
-		bullet.process()
+		var/datum/organ/external/E = target_human.organs[zone]
+		if(!E) E = target_human.organs["chest"]
+
+		if(E && !E.destroyed)
+			var/was_broken = E.broken
+			var/was_artery = E.artery_cut
+			var/was_tendon = E.tendon_damaged
+
+			var/damage = gurps_damage + (H.gurps_strength - 10) / 2
+			E.take_damage(damage, 0, 0, gurps_damage_type, attack["crit"])
+			target_human.UpdateDamageIcon()
+			target_human.updatehealth()
+			target_human.lastattacker = H
+
+			var/effect_msg = gurps_determine_effect(E, was_broken, was_artery, was_tendon, attack["crit"])
+
+			spawn(2)
+				var/msg_others = "<span class='danger'>В [zone_name] [target_human] попадает пуля!</span>"
+				var/msg_self = "<span class='danger'>В вашу [zone_name] попадает пуля!</span>"
+
+				if(effect_msg)
+					msg_others += " <span class='danger'>[effect_msg]</span>"
+					msg_self += " <span class='danger'>[effect_msg]</span>"
+				else
+					msg_others += " <span class='notice'>Заурядное попадание.</span>"
+					msg_self += " <span class='notice'>Заурядное попадание.</span>"
+
+				target_human.visible_message(msg_others, msg_self)
+		else
+			spawn(2)
+				user.visible_message("<span class='warning'>Пуля попадает в [target_human], но конечность уничтожена!</span>")
 	else
-		del(bullet)
+		spawn(2)
+			user.visible_message("<span class='danger'>[user] попадает в [target] из [src]!</span>")
 
 /obj/item/weapon/gun/gurps/revolver/attack(mob/M, mob/user)
 	if(current_ammo > 0 && !cylinder_open)
@@ -377,10 +329,6 @@
 	usr << "Револьвер .357 калибра. Патронов: [current_ammo]/[max_ammo]. Гильз в барабане: [fired_ammo]. Барабан [cylinder_open ? "открыт" : "закрыт"]."
 	..()
 
-
-// ============================================
-// ПИСТОЛЕТ С МАГАЗИНОМ (РОДИТЕЛЬСКИЙ КЛАСС)
-// ============================================
 
 // ============================================
 // МАГАЗИН
@@ -415,6 +363,26 @@
 	current_rounds--
 	update_magazine_icon()
 	return TRUE
+
+/obj/item/weapon/ammo/gurps/magazine/attackby(obj/item/weapon/ammo/gurps/pistol/A, mob/user)
+	if(istype(A, /obj/item/weapon/ammo/gurps/pistol))
+		if(current_rounds >= max_rounds)
+			user << "\blue Магазин уже полностью заряжен!"
+			return
+
+		current_rounds++
+		user << "\blue Вы заряжаете один патрон в магазин. ([current_rounds]/[max_rounds])"
+		playsound(user, 'sound/weapons2/mag_load.ogg', 40, 1)
+
+		if(A.amount > 1)
+			A.amount--
+			A.ammo_update_icon()
+		else
+			del(A)
+
+		update_magazine_icon()
+	else
+		..()
 
 /obj/item/weapon/ammo/gurps/magazine/examine()
 	set src in usr
@@ -500,6 +468,7 @@
 		amount = 1
 		ammo_update_icon()
 	..()
+
 // ============================================
 // ПИСТОЛЕТ С МАГАЗИНОМ (С ЗАТВОРОМ)
 // ============================================
@@ -515,13 +484,12 @@
 	var/obj/item/weapon/ammo/gurps/magazine/magazine = null
 	var/magazine_type = /obj/item/weapon/ammo/gurps/magazine/pistol
 	var/caliber = ".45 ACP"
-	var/chambered = FALSE  // Есть ли патрон в патроннике
-	var/slide_locked = FALSE  // Затвор заблокирован (пустой магазин)
+	var/chambered = FALSE
+	var/slide_locked = FALSE
 
 /obj/item/weapon/gun/gurps/pistol/New()
 	..()
 	magazine = new magazine_type(src)
-	// При первой зарядке — передёргиваем затвор
 	if(magazine && magazine.current_rounds > 0)
 		magazine.unload_round()
 		chambered = TRUE
@@ -543,7 +511,6 @@
 			return
 
 		if(chambered)
-			// Извлекаем патрон из патронника
 			var/obj/item/weapon/ammo/gurps/pistol/ejected = new /obj/item/weapon/ammo/gurps/pistol(get_turf(user))
 			ejected.amount = 1
 			ejected.ammo_update_icon()
@@ -554,7 +521,6 @@
 			)
 			playsound(user, 'sound/weapons2/rifle_cock.ogg', 50, 1)
 
-		// Если патронник пуст — досылаем новый патрон из магазина
 		if(!chambered && magazine && magazine.current_rounds > 0)
 			magazine.unload_round()
 			magazine.update_magazine_icon()
@@ -565,7 +531,6 @@
 			)
 			playsound(user, 'sound/weapons2/rifle_cock.ogg', 50, 1)
 
-		// Если магазин пуст — блокируем затвор
 		if(!chambered && (!magazine || magazine.current_rounds <= 0))
 			slide_locked = TRUE
 			user << "\red Затвор заблокирован. Магазин пуст."
@@ -600,12 +565,12 @@
 		user.u_equip(M)
 		M.loc = src
 		magazine = M
-		slide_locked = FALSE  // Разблокируем затвор при вставке нового магазина
+		slide_locked = FALSE
 		update_pistol_icon()
 	else
 		..()
 
-// Извлечение магазина (перетягивание вниз)
+// Извлечение магазина (перетягивание)
 /obj/item/weapon/gun/gurps/pistol/MouseDrop(atom/over_object)
 	if(usr && ishuman(usr))
 		var/mob/living/carbon/human/H = usr
@@ -613,7 +578,24 @@
 			if(magazine)
 				var/obj/item/weapon/ammo/gurps/magazine/M = magazine
 				magazine = null
-				M.loc = get_turf(H)
+
+				if(over_object == H)
+					if(!H.l_hand)
+						H.l_hand = M
+						M.loc = H
+						M.layer = 20
+						H << "\blue Вы достаёте магазин в левую руку."
+					else if(!H.r_hand)
+						H.r_hand = M
+						M.loc = H
+						M.layer = 20
+						H << "\blue Вы достаёте магазин в правую руку."
+					else
+						M.loc = get_turf(H)
+						H << "\blue Обе руки заняты! Магазин падает на пол."
+				else
+					M.loc = get_turf(H)
+
 				H.visible_message(
 					"<span class='warning'>[H] извлекает магазин из [src]!</span>",
 					"<span class='notice'>Вы извлекаете магазин из [src]. ([M.current_rounds]/[M.max_rounds])</span>"
@@ -648,10 +630,8 @@
 
 	var/list/attack = gurps_skill_check(skill)
 
-	// Выстрел — тратим патрон из патронника
 	chambered = FALSE
 
-	// Автоматически досылаем новый патрон из магазина
 	if(magazine && magazine.current_rounds > 0)
 		magazine.unload_round()
 		magazine.update_magazine_icon()
@@ -673,26 +653,50 @@
 			user.visible_message("<span class='warning'>Пуля пролетает мимо [target]!</span>")
 		return
 
-	var/obj/projectile/bullet/gurps/bullet = new /obj/projectile/bullet/gurps(user.loc)
-	bullet.shooter = H
-	bullet.gurps_damage = gurps_damage + (H.gurps_strength - 10) / 2
-	bullet.gurps_damage_type = gurps_damage_type
-	bullet.is_crit = attack["crit"]
+	if(ishuman(target))
+		var/mob/living/carbon/human/target_human = target
+		var/zone = "chest"
+		if(H.zone_sel && istype(H.zone_sel, /obj/screen/zone_sel))
+			zone = H.zone_sel.selecting
 
-	if(H.zone_sel && istype(H.zone_sel, /obj/screen/zone_sel))
-		bullet.original_zone = H.zone_sel.selecting
-	else
-		bullet.original_zone = "chest"
+		var/original_zone = zone
+		zone = gurps_normalize_zone(zone)
+		var/zone_name = gurps_zone_name_combat(original_zone)
 
-	var/turf/T = user.loc
-	var/turf/U = (istype(target, /atom/movable) ? target.loc : target)
-	if(U && T)
-		bullet.current = U
-		bullet.yo = U.y - T.y
-		bullet.xo = U.x - T.x
-		bullet.process()
+		var/datum/organ/external/E = target_human.organs[zone]
+		if(!E) E = target_human.organs["chest"]
+
+		if(E && !E.destroyed)
+			var/was_broken = E.broken
+			var/was_artery = E.artery_cut
+			var/was_tendon = E.tendon_damaged
+
+			var/damage = gurps_damage + (H.gurps_strength - 10) / 2
+			E.take_damage(damage, 0, 0, gurps_damage_type, attack["crit"])
+			target_human.UpdateDamageIcon()
+			target_human.updatehealth()
+			target_human.lastattacker = H
+
+			var/effect_msg = gurps_determine_effect(E, was_broken, was_artery, was_tendon, attack["crit"])
+
+			spawn(2)
+				var/msg_others = "<span class='danger'>В [zone_name] [target_human] попадает пуля!</span>"
+				var/msg_self = "<span class='danger'>В вашу [zone_name] попадает пуля!</span>"
+
+				if(effect_msg)
+					msg_others += " <span class='danger'>[effect_msg]</span>"
+					msg_self += " <span class='danger'>[effect_msg]</span>"
+				else
+					msg_others += " <span class='notice'>Заурядное попадание.</span>"
+					msg_self += " <span class='notice'>Заурядное попадание.</span>"
+
+				target_human.visible_message(msg_others, msg_self)
+		else
+			spawn(2)
+				user.visible_message("<span class='warning'>Пуля попадает в [target_human], но конечность уничтожена!</span>")
 	else
-		del(bullet)
+		spawn(2)
+			user.visible_message("<span class='danger'>[user] попадает в [target] из [src]!</span>")
 
 // Удар пистолетом
 /obj/item/weapon/gun/gurps/pistol/attack(mob/M, mob/user)

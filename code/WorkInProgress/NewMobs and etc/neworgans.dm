@@ -368,29 +368,35 @@
 		var/mob/living/carbon/human/H = owner
 		H.pain(display_name, (brute+burn)*3, 1)
 
-	// === ОТРУБАНИЕ КОНЕЧНОСТЕЙ (режущее) ===
+// === ОТРУБАНИЕ КОНЕЧНОСТЕЙ (режущее) ===
 	if(dmg_type == DAMAGE_CUT && brute >= 15 && !destroyed)
-		var/sever_chance = brute * 0.3
-		if(brute_dam > max_damage * 0.5)
-			sever_chance *= 1.5
-		if(brute_dam > max_damage * 0.75)
-			sever_chance *= 2.0
-		if(name in list("head", "neck"))
-			sever_chance *= 1.5
-		if(name in list("l_hand", "r_hand", "l_foot", "r_foot"))
-			sever_chance *= 1.3
+		// Исключаем живот, шею и пах из отрубания
+		if(name in list("vitals", "chest"))
+			// Пропускаем отрубание для этих зон
+		else
+			var/sever_chance = brute * 0.3
+			if(brute_dam > max_damage * 0.5)
+				sever_chance *= 1.5
+			if(brute_dam > max_damage * 0.75)
+				sever_chance *= 2.0
+			if(name in list("head", "neck"))
+				sever_chance *= 1.7
+			if(name in list("groin"))
+				sever_chance *= 1.7
+			if(name in list("l_hand", "r_hand", "l_foot", "r_foot"))
+				sever_chance *= 1.3
 
-		if(prob(sever_chance))
-			if(owner)
-				for(var/mob/M in viewers(owner))
-					M.show_message("\red <B>[owner.name]'s [display_name] is severed!</B>")
-			destroyed = 1
-			droplimb()
-			return
+			if(prob(sever_chance))
+				if(owner)
+					for(var/mob/M in viewers(owner))
+						M.show_message("\red <B>[owner.name]'s [display_name] is severed!</B>")
+				destroyed = 1
+				droplimb()
+				return
 
 	// === ДРОБЯЩИЙ РАЗРЫВ КОНЕЧНОСТЕЙ ===
 	if(dmg_type == DAMAGE_CRUSH && brute >= 18 && !destroyed)
-		if(!(name in list("vitals", "neck")))  // Только шея и живот не разрываются
+		if(!(name in list("vitals", "neck")))
 			var/explode_chance = (brute - 10) * 1.0
 			if(brute_dam > max_damage * 0.4)
 				explode_chance *= 1.5
@@ -399,7 +405,7 @@
 			if(brute_dam > max_damage * 0.8)
 				explode_chance *= 2.5
 			if(name in list("head"))
-				explode_chance *= 3
+				explode_chance *= 5
 			if(name in list("l_hand", "r_hand", "l_foot", "r_foot"))
 				explode_chance *= 2.0
 			if(supbrute)
@@ -453,10 +459,18 @@
 					"<span class='danger'><B>Артерия в вашей [display_name] разорвана!</B></span>"
 				)
 				H.bloodloss = max(H.bloodloss, 25)
+				// Только лужа крови, без брызг
+				var/obj/decal/cleanable/blood/pool/P = locate() in H.loc
+				if(!P)
+					P = new /obj/decal/cleanable/blood/pool(H.loc)
+					if(H.dna)
+						P.blood_DNA = H.dna.unique_enzymes
+					P.blood_type = H.b_type
+				P.blood_amount += 20
+				P.update_pool()
 				playsound(H.loc, pick('sound/trauma/blood/blood_splat.ogg'), 70, 1)
 				if(name == "neck")
 					playsound(H.loc, pick('sound/voice/throat.ogg', 'sound/voice/throat2.ogg', 'sound/voice/throat3.ogg'), 70, 1)
-					playsound(H.loc, pick('sound/trauma/blood/blood_splat.ogg'), 70, 1)
 					H.oxyloss += 5
 					if(prob(30))
 						H.paralysis = max(H.paralysis, 10)
@@ -482,7 +496,7 @@
 					H.weakened = max(H.weakened, 5)
 
 	// ===== ПЕРЕЛОМЫ (ТОЛЬКО ДРОБЯЩЕЕ) =====
-	if(owner && ishuman(owner) && !broken && !destroyed && dmg_type == DAMAGE_CRUSH && brute >= 10)
+	if(owner && ishuman(owner) && !broken && !destroyed && dmg_type == DAMAGE_CRUSH && brute >= 10 && !(name in list("vitals", "neck", "groin")))
 		var/mob/living/carbon/human/H = owner
 		var/fracture_chance = (brute - 8) * 1.2
 
@@ -569,20 +583,12 @@
 					vomit_chance = brute * 2
 
 				if(prob(vomit_chance))
-					H.visible_message(
-						"<span class='danger'><B>Удар в живот [H] вызывает рвоту!</B></span>",
-						"<span class='danger'><B>Удар в живот! Вас сейчас вырвет!</B></span>"
-					)
-					H.losebreath += 3
-					H.weakened = max(H.weakened, 3)
-					spawn(5)
-						if(H.stat != 2)
-							H.vomit(0)
+					H.gurps_vomit_from_hit(owner)
 					if(prob(20) && V.stomach.status == "healthy")
 						V.stomach.status = "bruised"
 						V.stomach.health = max(0, V.stomach.health - 20)
 
-	// ===== ВНУТРЕННИЕ ОРГАНЫ ГРУДИ (только сердце и лёгкие) =====
+	// ===== ВНУТРЕННИЕ ОРГАНЫ ГРУДИ =====
 	if(owner && ishuman(owner) && istype(src,/datum/organ/external/chest) && brute >= 10 && !destroyed)
 		var/mob/living/carbon/human/H = owner
 		var/datum/organ/external/chest/C = src
@@ -603,7 +609,7 @@
 					H.visible_message("<span class='danger'><B>Повреждён внутренний орган [H]! ([O.name])</B></span>")
 					H.pain(O.name, 50, 1)
 
-	// ===== ВНУТРЕННИЕ ОРГАНЫ ЖИВОТА (почки, желудок, кишечник) =====
+	// ===== ВНУТРЕННИЕ ОРГАНЫ ЖИВОТА =====
 	if(owner && ishuman(owner) && istype(src,/datum/organ/external/vitals) && brute >= 10 && !destroyed)
 		var/mob/living/carbon/human/H = owner
 		var/datum/organ/external/vitals/V = src
@@ -639,7 +645,9 @@
 			if(HD.brain.health <= 0)
 				HD.brain.status = "destroyed"
 				H.visible_message("<span class='danger'><B>Мозг [H] разрушен! Мгновенная смерть!</B></span>")
+				H.stat = 0
 				H.health = -999
+				H.oxyloss = 200
 				H.death()
 				return
 			else if(HD.brain.health < 25)
@@ -659,6 +667,11 @@
 		if(prob(brute * 2))
 			createwound(rand(1, max(1, round(brute/5))))
 		H.bloodloss = max(H.bloodloss, round(brute/4))
+		// Брызги крови при режущем/колющем ударе
+		var/obj/decal/cleanable/blood/splatter/S = new(H.loc)
+		if(H.dna)
+			S.blood_DNA = H.dna.unique_enzymes
+		S.blood_type = H.b_type
 
 	if(broken && owner && !destroyed)
 		owner.emote("scream")
@@ -746,6 +759,16 @@
 			d = turn(d, pick(-90, 90))
 
 	H.bloodloss += 10
+
+	// Создаём/увеличиваем лужу крови при отрубании
+	var/obj/decal/cleanable/blood/pool/P = locate() in H.loc
+	if(!P)
+		P = new /obj/decal/cleanable/blood/pool(H.loc)
+		if(H.dna)
+			P.blood_DNA = H.dna.unique_enzymes
+		P.blood_type = H.b_type
+	P.blood_amount += H.bloodloss * 0.3
+	P.update_pool()
 
 	if(name == "head")
 		var/g = (H.gender == MALE) ? "m" : "f"
@@ -972,10 +995,10 @@
 				if(T && !T.density)
 					free_turfs += T
 			var/turf/target_turf = free_turfs.len > 0 ? pick(free_turfs) : H.loc
-			var/obj/item/weapon/organ/penis/P = new(H.loc)
-			P.name = "отрезанный пенис [H.real_name]"
-			P.add_blood(H)
-			P.throw_at(target_turf, 2, 1)
+			var/obj/item/weapon/organ/penis/Penis = new(H.loc)
+			Penis.name = "отрезанный пенис [H.real_name]"
+			Penis.add_blood(H)
+			Penis.throw_at(target_turf, 2, 1)
 		H.visible_message("<span class='danger'><B>Пах [H] разрублен!</B></span>")
 		H.bloodloss = min(100, H.bloodloss + 20)
 		H.stunned = max(H.stunned, 10)
@@ -1016,6 +1039,16 @@
 			d = turn(d, pick(-90, 90))
 
 	H.bloodloss += 15
+
+	// Создаём/увеличиваем лужу крови при разрыве
+	var/obj/decal/cleanable/blood/pool/P = locate() in H.loc
+	if(!P)
+		P = new /obj/decal/cleanable/blood/pool(H.loc)
+		if(H.dna)
+			P.blood_DNA = H.dna.unique_enzymes
+		P.blood_type = H.b_type
+	P.blood_amount += H.bloodloss * 0.5
+	P.update_pool()
 
 	if(name == "chest")
 		H.gib()

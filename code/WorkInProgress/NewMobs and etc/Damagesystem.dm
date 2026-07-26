@@ -1871,17 +1871,20 @@
 /mob/living/carbon/human/death(gibbed)
 	..()
 	if(!gibbed && loc && isturf(loc))
-		var/obj/decal/cleanable/blood/pool/P = locate() in loc
-		if(!P)
-			P = new /obj/decal/cleanable/blood/pool(loc)
-			P.blood_DNA = dna?.unique_enzymes
-			P.blood_type = b_type
-		else
-			P.add_pool_blood(20)
+		var/should_bleed = FALSE
+		for(var/organ_name in organs)
+			var/datum/organ/external/E = organs[organ_name]
+			if(istype(E))
+				if(E.artery_cut || E.destroyed)
+					should_bleed = TRUE
+					break
 
-		for(var/dir in cardinal)
-			var/turf/T = get_step(src, dir)
-			if(T && !T.density && prob(50))
-				var/obj/decal/cleanable/blood/splatter/SS = new(T)
-				SS.blood_DNA = dna?.unique_enzymes
-				SS.blood_type = b_type
+		if(should_bleed)
+			var/obj/decal/cleanable/blood/pool/P = locate() in loc
+			if(!P)
+				P = new /obj/decal/cleanable/blood/pool(loc)
+				if(dna)
+					P.blood_DNA = dna.unique_enzymes
+				P.blood_type = b_type
+			P.blood_amount += bloodloss * 0.5
+			P.update_pool()
