@@ -18,14 +18,8 @@
 				if(target.dna) SS.blood_DNA = target.dna.unique_enzymes
 				SS.blood_type = target.b_type
 
-	if(target.bloodloss > 10)
-		var/obj/decal/cleanable/blood/pool/P = locate() in target.loc
-		if(!P)
-			P = new /obj/decal/cleanable/blood/pool(target.loc)
-			if(target.dna) P.blood_DNA = target.dna.unique_enzymes
-			P.blood_type = target.b_type
-		else
-			P.add_pool_blood(damage / 2)
+	// Ordinary hits leave only splatter. Pools are reserved for arterial cuts
+	// and severed or ruptured body parts.
 
 // ---------- ¿–“≈–»¿À‹Õ€… ‘ŒÕ“¿Õ ----------
 /proc/gurps_spawn_artery_spray(mob/living/carbon/human/H)
