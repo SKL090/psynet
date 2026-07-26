@@ -206,7 +206,7 @@
 			paralysis = 10
 
 	gurps_regen_endurance()
-// 	gurps_fov_apply()
+	gurps_fov_apply()
 
 	UpdateDamage()
 	update_clothing()

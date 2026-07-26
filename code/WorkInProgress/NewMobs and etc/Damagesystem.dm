@@ -1862,8 +1862,8 @@
 				TR.blood_DNA = dna?.unique_enzymes
 				TR.blood_type = b_type
 
-//		if(fov_enabled)
-//			gurps_fov_apply()
+		if(fov_enabled)
+			gurps_fov_apply()
 
 // ============================
 // СМЕРТЬ

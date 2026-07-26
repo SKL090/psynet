@@ -599,6 +599,7 @@
 #include "code\WorkInProgress\Mini\vomit.dm"
 #include "code\WorkInProgress\NewMobs and etc\aiconstruct.dm"
 #include "code\WorkInProgress\NewMobs and etc\Damagesystem.dm"
+#include "code\WorkInProgress\NewMobs and etc\FOV.dm"
 #include "code\WorkInProgress\NewMobs and etc\humanlife.dm"
 #include "code\WorkInProgress\NewMobs and etc\newhumanexamine.dm"
 #include "code\WorkInProgress\NewMobs and etc\newitem.dm"

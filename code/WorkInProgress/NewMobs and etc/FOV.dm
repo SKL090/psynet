@@ -1,129 +1,112 @@
 // ============================
-// FOV.dm � ����� ������ 180� (�������������� ����������)
+// FOV.dm — клиентское поле зрения человека
 // ============================
+// combat — видимая чёрная зона за спиной игрока.
+// behind — логическая маска этой же зоны: моб внутри неё скрывается
+// только для клиента наблюдателя. Сама маска на экран не выводится.
 
-#define FOV_RANGE_DEFAULT   7
-#define FOV_INVIS_LEVEL     50
+#define FOV_RANGE_DEFAULT 7
+#define FOV_HIDDEN_ALPHA  0
 
 /mob/living/carbon/human
-	var/fov_enabled     = TRUE
-	var/fov_range       = FOV_RANGE_DEFAULT
-	var/obj/screen/fov_behind = null
+	var/fov_enabled = TRUE
+	var/fov_range = FOV_RANGE_DEFAULT
 	var/obj/screen/fov_combat = null
 	var/list/fov_hidden = list()
 
+// Создаёт только видимый слой. behind не добавляется в client.screen:
+// это невидимая логическая маска, определяемая через gurps_is_in_fov().
 /mob/living/carbon/human/proc/gurps_init_fov()
-	if(!client) return
-
-	if(fov_behind)
-		client.screen -= fov_behind
-		fov_behind = null
-	if(fov_combat)
-		client.screen -= fov_combat
-		fov_combat = null
-
-	fov_behind = new /obj/screen()
-	fov_behind.icon = 'icons/effects/hide.dmi'
-	fov_behind.icon_state = "behind"
-	fov_behind.layer = MOB_LAYER + 0.5
-	fov_behind.plane = FLOAT_PLANE
-	fov_behind.mouse_opacity = 0
-	fov_behind.screen_loc = "CENTER-7,CENTER-7"
-	fov_behind.dir = src.dir
-	client.screen += fov_behind
-
-	fov_combat = new /obj/screen()
-	fov_combat.icon = 'icons/effects/hide.dmi'
-	fov_combat.icon_state = "combat"
-	fov_combat.layer = MOB_LAYER + 0.6
-	fov_combat.plane = FLOAT_PLANE
-	fov_combat.mouse_opacity = 0
-	fov_combat.screen_loc = "CENTER-7,CENTER-7"
-	fov_combat.dir = src.dir
-	client.screen += fov_combat
-
-/mob/living/carbon/human/proc/gurps_fov_apply()
-	if(!client || !fov_enabled) return
-
-	if(!fov_behind)
-		gurps_init_fov()
+	if(!client || !fov_enabled)
 		return
 
-	// ������� ������
-	client.screen -= fov_behind
-	client.screen -= fov_combat
+	if(!fov_combat)
+		fov_combat = new /obj/screen()
+		fov_combat.icon = 'icons/effects/hide.dmi'
+		fov_combat.icon_state = "combat"
+		fov_combat.layer = MOB_LAYER + 0.6
+		fov_combat.plane = FLOAT_PLANE
+		fov_combat.mouse_opacity = 0
+		fov_combat.screen_loc = "CENTER-7,CENTER-7"
+		client.screen += fov_combat
 
-	// ������ ����� � ���������� ������������
-	fov_behind = new /obj/screen()
-	fov_behind.icon = 'icons/effects/hide.dmi'
-	fov_behind.icon_state = "behind"
-	fov_behind.layer = MOB_LAYER + 0.5
-	fov_behind.plane = FLOAT_PLANE
-	fov_behind.mouse_opacity = 0
-	fov_behind.screen_loc = "CENTER-7,CENTER-7"
-	fov_behind.dir = src.dir
-	client.screen += fov_behind
+	fov_combat.dir = dir
 
-	fov_combat = new /obj/screen()
-	fov_combat.icon = 'icons/effects/hide.dmi'
-	fov_combat.icon_state = "combat"
-	fov_combat.layer = MOB_LAYER + 0.6
-	fov_combat.plane = FLOAT_PLANE
-	fov_combat.mouse_opacity = 0
-	fov_combat.screen_loc = "CENTER-7,CENTER-7"
-	fov_combat.dir = src.dir
-	client.screen += fov_combat
+/mob/living/carbon/human/proc/gurps_fov_hide_mob(mob/target)
+	if(!client || !target || target == src || fov_hidden[target])
+		return
 
-	// ������� �����
-	for(var/mob/M in fov_hidden)
-		if(M && istype(M))
-			M.invisibility = 0
-	fov_hidden.Cut()
+	// image.override заменяет внешний вид цели исключительно у этого клиента.
+	// Глобальные invisibility/alpha моба не изменяются.
+	var/image/hidden_image = image(target)
+	hidden_image.override = TRUE
+	hidden_image.alpha = FOV_HIDDEN_ALPHA
+	client.images += hidden_image
+	fov_hidden[target] = hidden_image
 
-	var/list/in_range = view(fov_range, src)
-	for(var/mob/target in in_range)
-		if(target == src) continue
-		if(!ishuman(target) && !istype(target, /mob/living)) continue
+/mob/living/carbon/human/proc/gurps_fov_show_mob(mob/target)
+	if(!target || !fov_hidden[target])
+		return
 
-		if(!gurps_is_in_fov(src, target))
-			target.invisibility = FOV_INVIS_LEVEL
-			fov_hidden.Add(target)
+	var/image/hidden_image = fov_hidden[target]
+	if(client)
+		client.images -= hidden_image
+	fov_hidden[target] = null
+
+/mob/living/carbon/human/proc/gurps_fov_apply()
+	if(!client)
+		return
+
+	if(!fov_enabled || stat == STAT_DEAD)
+		gurps_fov_cleanup()
+		return
+
+	gurps_init_fov()
+	if(!fov_combat)
+		return
+
+	// Поворот персонажа синхронно поворачивает чёрный конус.
+	fov_combat.dir = dir
+
+	var/list/hidden_now = list()
+	for(var/mob/target in view(fov_range, src))
+		if(target == src)
+			continue
+		if(gurps_is_behind_fov(src, target))
+			hidden_now[target] = TRUE
+			gurps_fov_hide_mob(target)
+
+	// Возвращаем видимость мобам, которые вышли из маски, поля зрения
+	// либо были удалены.
+	for(var/mob/target in fov_hidden.Copy())
+		if(!target || !hidden_now[target])
+			gurps_fov_show_mob(target)
 
 /mob/living/carbon/human/proc/gurps_fov_cleanup()
-	if(fov_behind && client)
-		client.screen -= fov_behind
-	if(fov_combat && client)
+	if(client && fov_combat)
 		client.screen -= fov_combat
-	fov_behind = null
 	fov_combat = null
-	for(var/mob/M in fov_hidden)
-		if(M && istype(M))
-			M.invisibility = 0
+
+	for(var/mob/target in fov_hidden.Copy())
+		gurps_fov_show_mob(target)
 	fov_hidden.Cut()
 
-/proc/gurps_is_in_fov(mob/viewer, mob/target)
-	if(!viewer || !target) return FALSE
-	if(viewer == target) return TRUE
+// behind — сектор позади моба. Для восьми направлений исключаем три
+// направления: строго сзади и две задние диагонали.
+/proc/gurps_is_behind_fov(mob/viewer, mob/target)
+	if(!viewer || !target || viewer == target)
+		return FALSE
 
-	if(!target.client && !ishuman(target)) return TRUE
-
-	var/viewer_dir = viewer.dir
 	var/dir_to_target = get_dir(viewer, target)
+	if(!dir_to_target)
+		return FALSE
 
-	if(viewer_dir == dir_to_target) return TRUE
+	var/back = turn(viewer.dir, 180)
+	if(dir_to_target == back)
+		return TRUE
+	if(dir_to_target == turn(viewer.dir, 135))
+		return TRUE
+	if(dir_to_target == turn(viewer.dir, 225))
+		return TRUE
 
-	var/behind = turn(viewer_dir, 180)
-	if(dir_to_target == behind) return FALSE
-
-	if(dir_to_target == turn(viewer_dir, 135)) return FALSE
-	if(dir_to_target == turn(viewer_dir, 225)) return FALSE
-
-	return TRUE
-
-/mob/living/carbon/human/Login()
-	..()
-	spawn(2) gurps_init_fov()
-
-/mob/living/carbon/human/Logout()
-	gurps_fov_cleanup()
-	..()
+	return FALSE
