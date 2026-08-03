@@ -45,6 +45,10 @@
 
 	var/artery_cut = 0
 	var/tendon_damaged = 0
+	var/gurps_next_dismember_check = 0
+	var/gurps_next_artery_check = 0
+	var/gurps_next_tendon_check = 0
+	var/gurps_next_fracture_check = 0
 
 /datum/organ/external/process()
 	if(destroyed && destspawn)
@@ -55,11 +59,6 @@
 		destroyed = 1
 		if(owner) owner:update_body()
 		return
-	if(brute_dam > min_broken_damage && broken == 0)
-		if(owner) owner << "[damage_msg] in your [display_name]"
-		broken = 1
-		wound = "broken"
-		perma_injury = brute_dam
 	if(istype(src, /datum/organ/external/chest))
 		process_chest_organs(src)
 	if(istype(src, /datum/organ/external/head))
@@ -103,6 +102,9 @@
 
 /datum/organ/internal/lungs
 	name = "lungs"
+	// Severe chest trauma can fill the lungs with fluid/blood.
+	var/fluid_filled = FALSE
+	var/last_fluid_cough = 0
 
 /datum/organ/internal/liver
 	name = "liver"
@@ -203,6 +205,8 @@
 	max_damage = 40
 	min_broken_damage = 15
 	display_name = "left hand"
+	var/fingers = 5
+	var/gurps_next_finger_check = 3
 
 /datum/organ/external/l_leg
 	name = "l_leg"
@@ -231,6 +235,8 @@
 	max_damage = 40
 	min_broken_damage = 15
 	display_name = "right hand"
+	var/fingers = 5
+	var/gurps_next_finger_check = 3
 
 /datum/organ/external/r_leg
 	name = "r_leg"
@@ -292,6 +298,14 @@
 		if("destroyed") H.death()
 
 /proc/process_lungs(datum/organ/internal/lungs/L, mob/living/carbon/human/H)
+	if(L.fluid_filled)
+		H.losebreath += 4
+		H.oxyloss += 2
+		// 100 world.time = 10 seconds.
+		if(world.time >= L.last_fluid_cough + 100)
+			L.last_fluid_cough = world.time
+			H.cough_blood()
+
 	switch(L.status)
 		if("bruised")  if(prob(10)) H.losebreath += 1
 		if("damaged")  {H.losebreath += 3; if(prob(5)) H.cough_blood()}
@@ -355,69 +369,79 @@
 		L.blood_type = b_type
 	bloodloss += 2
 
+// Missing fingers penalize weapon control and parrying with the affected hand.
+/mob/living/carbon/human/proc/gurps_hand_finger_penalty()
+	var/datum/organ/external/E = (hand ? organs["l_hand"] : organs["r_hand"])
+	if(!E) return 0
+	var/fingers = E:fingers
+	if(isnull(fingers) || fingers >= 4) return 0
+	if(fingers == 3) return 1
+	if(fingers == 2) return 2
+	return 4
+
 // ============================
 // GURPS take_damage
 // ============================
+/datum/organ/external/proc/gurps_is_dismemberable()
+	// Neck is cut for decapitation; head is crushed for a gore explosion.
+	return name in list("head", "neck", "l_arm", "r_arm", "l_leg", "r_leg", "l_hand", "r_hand", "l_foot", "r_foot")
+
+/datum/organ/external/proc/gurps_crippling_threshold(mob/living/carbon/human/H)
+	if(!H) return INFINITY
+	// GURPS 4e: limbs cripple above HP/2; hands and feet above HP/3.
+	if(name in list("l_arm", "r_arm", "l_leg", "r_leg"))
+		return H.gurps_strength / 2
+	if(name in list("l_hand", "r_hand", "l_foot", "r_foot"))
+		return H.gurps_strength / 3
+	// Skull, neck and chest use the major-wound threshold.
+	if(name == "head" || name == "neck" || name == "chest")
+		return H.gurps_strength / 2
+	return INFINITY
+
 /datum/organ/external/proc/take_damage(brute, burn, slash = 0, dmg_type = DAMAGE_CRUSH, supbrute = 0)
 	if ((brute <= 0 && burn <= 0))
 		return 0
 	if(destroyed)
 		return 0
 
+	// Snapshot before this hit; threshold checks below use it to fire once.
+	var/old_brute_damage = brute_dam
+
 	if(owner && ishuman(owner))
 		var/mob/living/carbon/human/H = owner
 		H.pain(display_name, (brute+burn)*3, 1)
 
-// === ОТРУБАНИЕ КОНЕЧНОСТЕЙ (режущее) ===
-	if(dmg_type == DAMAGE_CUT && brute >= 15 && !destroyed)
-		// Исключаем живот, шею и пах из отрубания
-		if(name in list("vitals", "chest"))
-			// Пропускаем отрубание для этих зон
-		else
-			var/sever_chance = brute * 0.3
-			if(brute_dam > max_damage * 0.5)
-				sever_chance *= 1.5
-			if(brute_dam > max_damage * 0.75)
-				sever_chance *= 2.0
-			if(name in list("head", "neck"))
-				sever_chance *= 1.7
-			if(name in list("groin"))
-				sever_chance *= 1.7
-			if(name in list("l_hand", "r_hand", "l_foot", "r_foot"))
-				sever_chance *= 1.3
-
-			if(prob(sever_chance))
-				if(owner)
-					for(var/mob/M in viewers(owner))
-						M.show_message("\red <B>[owner.name]'s [display_name] is severed!</B>")
-				destroyed = 1
-				droplimb()
-				return
-
-	// === ДРОБЯЩИЙ РАЗРЫВ КОНЕЧНОСТЕЙ ===
-	if(dmg_type == DAMAGE_CRUSH && brute >= 18 && !destroyed)
-		if(!(name in list("vitals", "neck")))
-			var/explode_chance = (brute - 10) * 1.0
-			if(brute_dam > max_damage * 0.4)
-				explode_chance *= 1.5
-			if(brute_dam > max_damage * 0.6)
-				explode_chance *= 2.0
-			if(brute_dam > max_damage * 0.8)
-				explode_chance *= 2.5
-			if(name in list("head"))
-				explode_chance *= 5
-			if(name in list("l_hand", "r_hand", "l_foot", "r_foot"))
-				explode_chance *= 2.0
-			if(supbrute)
-				explode_chance *= 1.5
-
-			if(prob(explode_chance))
-				if(owner)
-					for(var/mob/M in viewers(owner))
-						M.show_message("\red <B>[owner.name]'s [display_name] explodes in a shower of gore!</B>")
-				destroyed = 1
-				droplimb_gib()
-				return
+// ===== GURPS 4e: DISMEMBERMENT / DESTROYED LIMB =====
+	// Cutting injury at twice the crippling threshold severs a limb.
+	// Crushing injury at twice that threshold destroys it. No random chance.
+	if(owner && ishuman(owner) && gurps_is_dismemberable())
+		var/mob/living/carbon/human/H = owner
+		var/destroy_threshold = gurps_crippling_threshold(H) * 2
+		// HT is tested at every new full destruction threshold: HP, 2*HP, etc.
+		// Passing HT delays the loss, but cannot make a heavily mangled part immune forever.
+		if(gurps_next_dismember_check <= 0)
+			gurps_next_dismember_check = destroy_threshold
+		if((dmg_type == DAMAGE_CUT || dmg_type == DAMAGE_CRUSH) && old_brute_damage + brute >= gurps_next_dismember_check)
+			gurps_next_dismember_check += destroy_threshold
+			var/list/ht_roll = gurps_skill_check(H.gurps_health)
+			if(!ht_roll["success"])
+				// Cutting the neck decapitates; a direct head cut cannot do this.
+				if(dmg_type == DAMAGE_CUT && name != "head")
+					if(name in list("neck", "l_arm", "r_arm", "l_leg", "r_leg"))
+						artery_cut = 1
+						H.bloodloss = max(H.bloodloss, 25)
+					destroyed = 1
+					H.visible_message("<span class='danger'><B>[H] лишается [display_name]!</B></span>")
+					// droplimb() plays the original chopping sounds.
+					droplimb()
+					return
+				// A neck cannot be gibbed: crushing the head is what explodes it.
+				if(dmg_type == DAMAGE_CRUSH && name != "neck")
+					destroyed = 1
+					H.visible_message("<span class='danger'><B>[display_name] [H] разрывается в клочья!</B></span>")
+					// droplimb_gib() plays the original gore sound.
+					droplimb_gib()
+					return
 
 	// ПРИМЕНЕНИЕ УРОНА
 	if ((brute_dam + burn_dam + brute + burn) < max_damage)
@@ -443,114 +467,116 @@
 			return 0
 
 	// ===== АРТЕРИИ (режущее и колющее) =====
-	if((dmg_type == DAMAGE_CUT || dmg_type == DAMAGE_PIERCE) && brute >= 8 && !artery_cut && !destroyed)
-		var/artery_chance = brute * 1.5
-		if(brute_dam > max_damage * 0.3)
-			artery_chance *= 1.5
-		if(name == "neck")
-			artery_chance *= 2.0
-
-		if(prob(artery_chance) && name in list("neck", "l_arm", "r_arm", "l_leg", "r_leg"))
-			artery_cut = 1
+	// At sufficient accumulated cutting/piercing injury, HT decides whether an
+	// artery is actually torn. This replaces the previous random percentage.
+	if((dmg_type == DAMAGE_CUT || dmg_type == DAMAGE_PIERCE) && !artery_cut && !destroyed)
+		// Retry at every additional 8 points if HT previously resisted the injury.
+		if(gurps_next_artery_check <= 0) gurps_next_artery_check = 8
+		if(old_brute_damage + brute >= gurps_next_artery_check && name in list("neck", "l_arm", "r_arm", "l_leg", "r_leg"))
+			gurps_next_artery_check += 8
 			if(owner && ishuman(owner))
 				var/mob/living/carbon/human/H = owner
-				H.visible_message(
-					"<span class='danger'><B>Артерия в [display_name] [H] разорвана! Кровь фонтанирует!</B></span>",
-					"<span class='danger'><B>Артерия в вашей [display_name] разорвана!</B></span>"
-				)
-				H.bloodloss = max(H.bloodloss, 25)
-				// Только лужа крови, без брызг
-				var/obj/decal/cleanable/blood/pool/P = locate() in H.loc
-				if(!P)
-					P = new /obj/decal/cleanable/blood/pool(H.loc)
-					if(H.dna)
-						P.blood_DNA = H.dna.unique_enzymes
-					P.blood_type = H.b_type
-				P.blood_amount += 20
-				P.update_pool()
-				playsound(H.loc, pick('sound/trauma/blood/blood_splat.ogg'), 70, 1)
-				if(name == "neck")
-					playsound(H.loc, pick('sound/voice/throat.ogg', 'sound/voice/throat2.ogg', 'sound/voice/throat3.ogg'), 70, 1)
-					H.oxyloss += 5
-					if(prob(30))
-						H.paralysis = max(H.paralysis, 10)
+				var/list/ht_roll = gurps_skill_check(H.gurps_health)
+				if(!ht_roll["success"])
+					artery_cut = 1
+					H.visible_message(
+						"<span class='danger'><B>Артерия в [display_name] [H] разорвана! Кровь фонтанирует!</B></span>",
+						"<span class='danger'><B>Артерия в вашей [display_name] разорвана!</B></span>"
+					)
+					H.bloodloss = max(H.bloodloss, 25)
+					H.gurps_spill_blood_to_pool(20)
+					playsound(H.loc, pick('sound/trauma/blood/blood_splat.ogg'), 70, 1)
+					if(name == "neck")
+						playsound(H.loc, pick('sound/voice/throat.ogg', 'sound/voice/throat2.ogg', 'sound/voice/throat3.ogg'), 70, 1)
+						H.oxyloss += 5
+						if(prob(30)) H.paralysis = max(H.paralysis, 10)
 
 	// ===== СУХОЖИЛИЯ (режущее) =====
-	if(dmg_type == DAMAGE_CUT && brute >= 5 && !tendon_damaged && !destroyed)
-		var/tendon_chance = brute * 2.0
-		if(brute_dam > max_damage * 0.3)
-			tendon_chance *= 1.5
-
-		if(prob(tendon_chance) && name in list("l_arm", "r_arm", "l_hand", "r_hand", "l_leg", "r_leg"))
-			tendon_damaged = 1
+	// A sufficiently deep accumulated cut requires a failed HT roll to damage a tendon.
+	if(dmg_type == DAMAGE_CUT && !tendon_damaged && !destroyed)
+		// Retry at every additional 5 points if HT previously resisted the injury.
+		if(gurps_next_tendon_check <= 0) gurps_next_tendon_check = 5
+		if(old_brute_damage + brute >= gurps_next_tendon_check && name in list("l_arm", "r_arm", "l_hand", "r_hand", "l_leg", "r_leg"))
+			gurps_next_tendon_check += 5
 			if(owner && ishuman(owner))
 				var/mob/living/carbon/human/H = owner
-				H.visible_message(
-					"<span class='danger'><B>Сухожилия в [display_name] [H] повреждены!</B></span>",
-					"<span class='danger'><B>Сухожилия в вашей [display_name] повреждены!</B></span>"
-				)
-				H.pain(display_name, 45, 1)
-				if(name in list("l_arm", "r_arm", "l_hand", "r_hand"))
-					H.drop_item()
-				if(name in list("l_leg", "r_leg"))
-					H.weakened = max(H.weakened, 5)
+				var/list/ht_roll = gurps_skill_check(H.gurps_health)
+				if(!ht_roll["success"])
+					tendon_damaged = 1
+					H.visible_message(
+						"<span class='danger'><B>Сухожилия в [display_name] [H] повреждены!</B></span>",
+						"<span class='danger'><B>Сухожилия в вашей [display_name] повреждены!</B></span>"
+					)
+					H.pain(display_name, 45, 1)
+					if(name in list("l_arm", "r_arm", "l_hand", "r_hand")) H.drop_item()
+					if(name in list("l_leg", "r_leg")) H.weakened = max(H.weakened, 5)
 
-	// ===== ПЕРЕЛОМЫ (ТОЛЬКО ДРОБЯЩЕЕ) =====
-	if(owner && ishuman(owner) && !broken && !destroyed && dmg_type == DAMAGE_CRUSH && brute >= 10 && !(name in list("vitals", "neck", "groin")))
+	// ===== ПАЛЬЦЫ (ТОЛЬКО РЕЖУЩЕЕ) =====
+	// Fingers are small targets: every 3 points of accumulated cutting injury
+	// can sever them. No HT roll is used after the hand has been hit this deeply.
+	if(dmg_type == DAMAGE_CUT && name in list("l_hand", "r_hand") && !destroyed)
+		var/datum/organ/external/l_hand/LH = (name == "l_hand") ? src : null
+		var/datum/organ/external/r_hand/RH = (name == "r_hand") ? src : null
+		var/fingers = LH ? LH.fingers : RH.fingers
+		var/next_finger_check = LH ? LH.gurps_next_finger_check : RH.gurps_next_finger_check
+		if(fingers > 0 && old_brute_damage + brute >= next_finger_check)
+			if(LH) LH.gurps_next_finger_check += 3
+			else RH.gurps_next_finger_check += 3
+			var/fingers_to_cut = min(fingers, max(1, round(brute / 3)))
+			if(LH) LH.fingers -= fingers_to_cut
+			else RH.fingers -= fingers_to_cut
+			if(owner && ishuman(owner))
+				var/mob/living/carbon/human/H = owner
+				for(var/i = 1 to fingers_to_cut)
+					var/obj/item/weapon/organ/finger/F = new(H.loc)
+					F.name = "отрезанный палец [H.real_name]"
+					F.icon_state = pick("finger1", "finger2", "finger3")
+					F.add_blood(H)
+					F.pixel_x = rand(-8, 8)
+					F.pixel_y = rand(-8, 8)
+				H.bloodloss += fingers_to_cut * 3
+				var/obj/decal/cleanable/blood/splatter/S = new(H.loc)
+				if(H.dna) S.blood_DNA = H.dna.unique_enzymes
+				S.blood_type = H.b_type
+				H.visible_message("<span class='danger'><B>[H] лишается [fingers_to_cut] пальцев!</B></span>", "<span class='danger'><B>Вам отрезает [fingers_to_cut] пальцев!</B></span>")
+				H.pain(display_name, 50 + fingers_to_cut * 10, 1)
+				if((LH && LH.fingers <= 2) || (RH && RH.fingers <= 2)) H.drop_item()
+
+	// ===== GURPS 4e: FRACTURE THRESHOLD =====
+	// More than HP/2 injury to a limb or HP/3 to a hand/foot breaks it.
+	if(owner && ishuman(owner) && !broken && !destroyed && dmg_type == DAMAGE_CRUSH)
 		var/mob/living/carbon/human/H = owner
-		var/fracture_chance = (brute - 8) * 1.2
-
-		if(supbrute)
-			fracture_chance *= 1.3
-		if(brute_dam > max_damage * 0.5)
-			fracture_chance *= 1.5
-		if(brute_dam > max_damage * 0.75)
-			fracture_chance *= 2.0
-
-		var/ht_bonus = (H.gurps_health - 10) * (-0.1)
-		fracture_chance += fracture_chance * ht_bonus
-		fracture_chance = max(1.0, fracture_chance)
-
-		if(prob(fracture_chance))
-			broken = 1
-			min_broken_damage = brute_dam
-
-			if(name == "head")
-				playsound(H.loc, pick('sound/trauma/head_explodie_01.ogg', 'sound/trauma/head_explodie_02.ogg', 'sound/trauma/head_explodie_03.ogg'), 80, 1)
-				H.visible_message("<span class='danger'><B>Череп [H] проломлен!</B></span>")
-			else
-				playsound(H.loc, pick('sound/effects/trauma1.ogg', 'sound/effects/trauma2.ogg', 'sound/effects/trauma3.ogg'), 70, 1)
-				H.visible_message("<span class='danger'><B>Кость сладко хрустит!</B></span>")
-			H.pain(display_name, 60, 1)
-
-			if(name == "head")
-				H.confused = max(H.confused, 20)
-				H.eye_blurry = max(H.eye_blurry, 15)
-				if(brute >= 25)
-					H.paralysis = max(H.paralysis, 10)
-					if(istype(src, /datum/organ/external/head))
-						var/datum/organ/external/head/HD = src
-						if(HD.brain)
-							HD.brain.health = max(0, HD.brain.health - 30)
-							if(HD.brain.health <= 50 && HD.brain.status == "healthy")
-								HD.brain.status = "bruised"
-			else if(name == "chest")
-				H.weakened = max(H.weakened, 5)
-				H.losebreath += 5
-				if(brute >= 25 && prob(40))
-					H.cough_blood()
-			else if(name == "groin")
-				H.weakened = max(H.weakened, 8)
-				H.stunned = max(H.stunned, 5)
-			else if(name in list("l_arm","r_arm"))
-				H.drop_item()
-				H.weakened = max(H.weakened, 3)
-			else if(name in list("l_hand","r_hand"))
-				H.drop_item()
-			else if(name in list("l_leg","r_leg"))
-				H.weakened = max(H.weakened, 8)
-			else if(name in list("l_foot","r_foot"))
-				H.weakened = max(H.weakened, 5)
+		// Track accumulated crushing injury in this body part, not only one lucky blow.
+		var/fracture_threshold = gurps_crippling_threshold(H)
+		// Retry at every additional crippling threshold if HT previously resisted.
+		if(gurps_next_fracture_check <= 0) gurps_next_fracture_check = fracture_threshold
+		if(old_brute_damage + brute > gurps_next_fracture_check)
+			gurps_next_fracture_check += fracture_threshold
+			// HT is the health check that decides whether accumulated trauma breaks bone.
+			var/list/ht_roll = gurps_skill_check(H.gurps_health)
+			if(!ht_roll["success"])
+				broken = 1
+				wound = "broken"
+				if(name == "head")
+					playsound(H.loc, pick('sound/trauma/head_explodie_01.ogg', 'sound/trauma/head_explodie_02.ogg', 'sound/trauma/head_explodie_03.ogg'), 80, 1)
+					H.visible_message("<span class='danger'><B>Череп [H] проломлен!</B></span>", "<span class='danger'><B>Ваш череп проломлен!</B></span>")
+				else if(name == "chest")
+					playsound(H.loc, pick('sound/effects/trauma1.ogg', 'sound/effects/trauma2.ogg', 'sound/effects/trauma3.ogg'), 75, 1)
+					H.visible_message("<span class='danger'><B>Рёбра [H] хрустят!</B></span>", "<span class='danger'><B>Ваши рёбра хрустят!</B></span>")
+					H.losebreath += 5
+					var/datum/organ/external/chest/C = src
+					var/datum/organ/internal/lungs/L = C.lungs
+					if(L)
+						// No announcement here: the condition is revealed by symptoms.
+						L.fluid_filled = TRUE
+						L.last_fluid_cough = world.time
+				else
+					playsound(H.loc, pick('sound/effects/trauma1.ogg', 'sound/effects/trauma2.ogg', 'sound/effects/trauma3.ogg'), 70, 1)
+					H.visible_message("<span class='danger'><B>Кость [H] хрустит!</B></span>", "<span class='danger'><B>Кость хрустит!</B></span>")
+				H.pain(display_name, 60, 1)
+				if(name in list("l_arm", "r_arm", "l_hand", "r_hand")) H.drop_item()
+				if(name in list("l_leg", "r_leg")) H.weakened = max(H.weakened, 8)
+				if(name in list("l_foot", "r_foot")) H.weakened = max(H.weakened, 5)
 
 	// ===== УДАР В ПАХ =====
 	if(name == "groin" && brute >= 5 && owner && ishuman(owner) && !destroyed)
@@ -685,6 +711,10 @@
 	if(internal)
 		broken = 0
 		perma_injury = 0
+		gurps_next_dismember_check = 0
+		gurps_next_artery_check = 0
+		gurps_next_tendon_check = 0
+		gurps_next_fracture_check = 0
 		artery_cut = 0
 		tendon_damaged = 0
 		for(var/datum/organ/external/wound/W in wounds)
@@ -761,14 +791,7 @@
 	H.bloodloss += 10
 
 	// Создаём/увеличиваем лужу крови при отрубании
-	var/obj/decal/cleanable/blood/pool/P = locate() in H.loc
-	if(!P)
-		P = new /obj/decal/cleanable/blood/pool(H.loc)
-		if(H.dna)
-			P.blood_DNA = H.dna.unique_enzymes
-		P.blood_type = H.b_type
-	P.blood_amount += H.bloodloss * 0.3
-	P.update_pool()
+	H.gurps_spill_blood_to_pool(10)
 
 	if(name == "head")
 		var/g = (H.gender == MALE) ? "m" : "f"
@@ -1020,8 +1043,9 @@
 	var/mob/living/carbon/human/H = owner
 	playsound(H.loc, 'sound/effects/gore.ogg', 80, 1)
 
+	var/list/gore_states = list("gib1", "gib2", "gib3", "gib4", "gib5", "gib6")
 	var/obj/decal/cleanable/blood/gibs/G = new(H.loc)
-	G.icon_state = pick("gib1","gib2","gib3","gib4","gib5","gib6")
+	G.icon_state = pick(gore_states)
 	if(H.dna)
 		G.blood_DNA = H.dna.unique_enzymes
 	G.blood_type = H.b_type
@@ -1041,14 +1065,7 @@
 	H.bloodloss += 15
 
 	// Создаём/увеличиваем лужу крови при разрыве
-	var/obj/decal/cleanable/blood/pool/P = locate() in H.loc
-	if(!P)
-		P = new /obj/decal/cleanable/blood/pool(H.loc)
-		if(H.dna)
-			P.blood_DNA = H.dna.unique_enzymes
-		P.blood_type = H.b_type
-	P.blood_amount += H.bloodloss * 0.5
-	P.update_pool()
+	H.gurps_spill_blood_to_pool(15)
 
 	if(name == "chest")
 		H.gib()
@@ -1162,6 +1179,11 @@ obj/item/weapon/organ/r_hand
 obj/item/weapon/organ/r_leg
 	name = "right leg"
 	icon_state = "leg_right_l"
+
+obj/item/weapon/organ/finger
+	name = "отрезанный палец"
+	icon = 'icons/mob/flesh/gore.dmi'
+	icon_state = "finger1"
 
 obj/item/weapon/organ/penis
 	name = "пенис"

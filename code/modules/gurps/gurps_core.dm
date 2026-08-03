@@ -68,6 +68,61 @@
 		weakened = max(weakened, 1)
 	return FALSE
 
+// Standard GURPS 4e basic damage table. mode is "thr" or "sw".
+/proc/gurps_get_basic_damage(st, mode = "thr")
+	st = max(1, round(st))
+	var/extra_dice = 0
+	while(st > 30)
+		st -= 10
+		extra_dice++
+
+	var/dice = 1
+	var/modifier = 0
+	switch(st)
+		if(1, 2) {dice = 1; modifier = (mode == "sw") ? -5 : -6}
+		if(3)    {dice = 1; modifier = (mode == "sw") ? -4 : -5}
+		if(4)    {dice = 1; modifier = (mode == "sw") ? -3 : -5}
+		if(5)    {dice = 1; modifier = (mode == "sw") ? -3 : -4}
+		if(6)    {dice = 1; modifier = (mode == "sw") ? -2 : -4}
+		if(7)    {dice = 1; modifier = (mode == "sw") ? -2 : -3}
+		if(8)    {dice = 1; modifier = (mode == "sw") ? -1 : -3}
+		if(9)    {dice = 1; modifier = (mode == "sw") ? -1 : -2}
+		if(10)   {dice = 1; modifier = (mode == "sw") ? 0 : -2}
+		if(11)   {dice = 1; modifier = (mode == "sw") ? 1 : -1}
+		if(12)   {dice = 1; modifier = (mode == "sw") ? 2 : -1}
+		if(13)   {dice = 1; modifier = (mode == "sw") ? 2 : 0}
+		if(14)   {dice = 1; modifier = (mode == "sw") ? 3 : 0}
+		if(15)   {dice = (mode == "sw") ? 2 : 1; modifier = (mode == "sw") ? -1 : 1}
+		if(16)   {dice = (mode == "sw") ? 2 : 1; modifier = (mode == "sw") ? 0 : 1}
+		if(17)   {dice = (mode == "sw") ? 2 : 1; modifier = (mode == "sw") ? 1 : 2}
+		if(18)   {dice = (mode == "sw") ? 2 : 1; modifier = (mode == "sw") ? 2 : 2}
+		if(19)   {dice = (mode == "sw") ? 3 : 2; modifier = -1}
+		if(20)   {dice = (mode == "sw") ? 3 : 2; modifier = (mode == "sw") ? 0 : -1}
+		if(21)   {dice = (mode == "sw") ? 3 : 2; modifier = (mode == "sw") ? 1 : 0}
+		if(22, 23) {dice = (mode == "sw") ? 3 : 2; modifier = (mode == "sw") ? 2 : 1}
+		if(24, 25) {dice = (mode == "sw") ? 3 : 2; modifier = (mode == "sw") ? 3 : 2}
+		if(26)   {dice = (mode == "sw") ? 3 : 2; modifier = (mode == "sw") ? 4 : 3}
+		if(27, 28) {dice = (mode == "sw") ? 4 : 3; modifier = -1}
+		if(29, 30) {dice = (mode == "sw") ? 4 : 3; modifier = 0}
+	return list("dice" = dice + extra_dice, "modifier" = modifier)
+
+/proc/gurps_roll_basic_damage(st, mode = "thr", weapon_modifier = 0)
+	var/list/base = gurps_get_basic_damage(st, mode)
+	var/damage = weapon_modifier + base["modifier"]
+	for(var/i = 1 to base["dice"])
+		damage += gurps_roll_1d6()
+	return max(1, damage)
+
+/proc/gurps_roll_weapon_damage(mob/living/carbon/human/attacker, obj/item/weapon/W)
+	if(!attacker || !W) return 1
+	if(istype(W, /obj/item/weapon/gurps))
+		var/obj/item/weapon/gurps/GW = W
+		return gurps_roll_basic_damage(attacker.gurps_strength, GW.get_damage_mode(), GW.get_damage_modifier())
+
+	// Improvised melee weapons remain strength-based. force is converted to
+	// a small GURPS modifier rather than being direct flat damage.
+	return gurps_roll_basic_damage(attacker.gurps_strength, "thr", round(W.force / 5))
+
 /proc/gurps_roll_3d6()
 	return rand(1, 6) + rand(1, 6) + rand(1, 6)
 

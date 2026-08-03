@@ -1,4 +1,5 @@
 /obj/hud/proc/human_hud()
+	var/mob/living/carbon/human/H = mymob
 
 	adding = list(  )
 	other = list(  )
@@ -300,6 +301,9 @@
 	mymob.throw_icon.icon_state = "act_throw_off"
 	mymob.throw_icon.name = "throw"
 	mymob.throw_icon.screen_loc = ui_throw
+	H.gurps_defense_icon = new /obj/screen/gurps_defense(null)
+	H.gurps_defense_icon.screen_loc = ui_gurps_defense
+	H.gurps_update_defense_hud()
 
 	mymob.oxygen = new /obj/screen( null )
 	mymob.oxygen.icon_state = "oxy0"
@@ -388,7 +392,7 @@
 	mymob.zone_sel2.name = "zone_sel2"
 
 	mymob.client.screen = null
-	mymob.client.screen += list( mymob.pain, mymob.throw_icon, mymob.zone_sel, mymob.zone_sel2, mymob.oxygen, mymob.toxin, mymob.bodytemp, mymob.internals, mymob.fire, mymob.hands, mymob.healths, mymob.pullin, mymob.blind, mymob.flash, mymob.rest, mymob.sleep)
+	mymob.client.screen += list( mymob.pain, mymob.throw_icon, H.gurps_defense_icon, mymob.zone_sel, mymob.zone_sel2, mymob.oxygen, mymob.toxin, mymob.bodytemp, mymob.internals, mymob.fire, mymob.hands, mymob.healths, mymob.pullin, mymob.blind, mymob.flash, mymob.rest, mymob.sleep)
 	mymob.client.screen += adding + other
 
 	return

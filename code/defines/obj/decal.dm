@@ -36,7 +36,7 @@
 	icon = 'icons/effects/pool.dmi'
 	icon_state = "pool1"
 	random_icon_states = null
-	var/blood_amount = 10
+	var/blood_amount = 0
 
 /obj/decal/cleanable/blood/pool/New()
 	..()
@@ -69,6 +69,7 @@
 	icon_state = "1"
 	blood_DNA = null
 	blood_type = null
+
 /obj/decal/cleanable/blood/splatter
 	random_icon_states = list("gibbl1", "gibbl2", "gibbl3", "gibbl4", "gibbl5")
 

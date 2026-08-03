@@ -937,7 +937,10 @@ mob/verb/turnwest()
 			if(usr.sleeping) usr.sleeping = 0
 			else usr.sleeping = 10000
 		if("rest")
-			usr.resting = !( usr.resting )
+			if(ishuman(usr))
+				usr:gurps_rest_button()
+			else
+				usr.resting = !(usr.resting)
 		if("throw")
 			if (!usr.stat && isturf(usr.loc) && !usr.restrained())
 				usr:toggle_throw_mode()

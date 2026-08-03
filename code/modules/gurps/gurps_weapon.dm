@@ -12,6 +12,15 @@
 	var/gurps_current_type = null
 	var/gurps_alt_name = ""
 	var/gurps_damage_bonus = 0
+	var/sharpness = 100
+	var/sharpness_max = 100
+	var/sharpness_loss_on_hit = 1
+	var/gurps_dull_damage_penalty = 2
+	var/gurps_metal = TRUE
+	var/gurps_damage_mode = "thr"
+	var/gurps_damage_modifier = 0
+	var/gurps_alt_damage_mode = null
+	var/gurps_alt_damage_modifier = null
 	var/gurps_accuracy = 0
 	var/gurps_min_strength = 6
 	var/gurps_twohanded = FALSE
@@ -57,9 +66,38 @@
 	if(!parrysound || !parrysound.len) return 'sound/weapons2/parry.ogg'
 	return pick(parrysound)
 
+/obj/item/weapon/gurps/proc/is_edged_mode()
+	return gurps_damage_type == DAMAGE_CUT && gurps_current_type != DAMAGE_PIERCE
+
+/obj/item/weapon/gurps/proc/is_dull()
+	return is_edged_mode() && sharpness <= 50
+
+/obj/item/weapon/gurps/proc/reduce_sharpness(amount = 1)
+	if(!is_edged_mode()) return
+	sharpness = max(0, sharpness - amount)
+
+/obj/item/weapon/gurps/proc/get_sharpness_text()
+	if(!is_edged_mode()) return null
+	if(sharpness > 75) return "Лезвие острое."
+	if(sharpness > 50) return "Лезвие слегка затуплено."
+	if(sharpness > 0) return "Лезвие тупое."
+	return "Лезвие полностью затуплено."
+
 /obj/item/weapon/gurps/proc/get_damage_type()
 	if(gurps_current_type != null) return gurps_current_type
+	if(is_dull()) return DAMAGE_CRUSH
 	return gurps_damage_type
+
+/obj/item/weapon/gurps/proc/get_damage_mode()
+	if(gurps_current_type != null && gurps_alt_damage_mode)
+		return gurps_alt_damage_mode
+	return gurps_damage_mode
+
+/obj/item/weapon/gurps/proc/get_damage_modifier()
+	if(gurps_current_type != null && !isnull(gurps_alt_damage_modifier))
+		return gurps_alt_damage_modifier
+	if(is_dull()) return gurps_damage_modifier - gurps_dull_damage_penalty
+	return gurps_damage_modifier
 
 /obj/item/weapon/gurps/proc/make_bloody()
 	if(bloody_icon_state)
@@ -109,6 +147,10 @@
 	gurps_alt_type = DAMAGE_PIERCE
 	gurps_alt_name = "колоть"
 	gurps_damage_bonus = 2
+	gurps_damage_mode = "sw"
+	gurps_damage_modifier = -3
+	gurps_alt_damage_mode = "thr"
+	gurps_alt_damage_modifier = -1
 	gurps_min_strength = 6
 	force = 10
 	hitsound_miss = list('sound/trauma/swing/swing_knife1.ogg', 'sound/trauma/swing/swing_knife2.ogg', 'sound/trauma/swing/swing_knife3.ogg')
@@ -130,6 +172,10 @@
 	gurps_alt_type = DAMAGE_PIERCE
 	gurps_alt_name = "колоть"
 	gurps_damage_bonus = 4
+	gurps_damage_mode = "sw"
+	gurps_damage_modifier = 1
+	gurps_alt_damage_mode = "thr"
+	gurps_alt_damage_modifier = 1
 	gurps_accuracy = 1
 	gurps_min_strength = 10
 	force = 16
@@ -150,6 +196,8 @@
 	gurps_skill = "knife"
 	gurps_damage_type = DAMAGE_PIERCE
 	gurps_damage_bonus = 2
+	gurps_damage_mode = "thr"
+	gurps_damage_modifier = -1
 	gurps_accuracy = 2
 	gurps_min_strength = 5
 	force = 8
@@ -171,6 +219,10 @@
 	gurps_alt_type = DAMAGE_CRUSH
 	gurps_alt_name = "бить обухом"
 	gurps_damage_bonus = 8
+	gurps_damage_mode = "sw"
+	gurps_damage_modifier = 2
+	gurps_alt_damage_mode = "sw"
+	gurps_alt_damage_modifier = 0
 	gurps_accuracy = -1
 	gurps_min_strength = 13
 	gurps_twohanded = TRUE
@@ -191,7 +243,10 @@
 	item_state = "club"
 	gurps_skill = "axe_club"
 	gurps_damage_type = DAMAGE_CRUSH
+	gurps_metal = FALSE
 	gurps_damage_bonus = 4
+	gurps_damage_mode = "sw"
+	gurps_damage_modifier = 1
 	gurps_min_strength = 8
 	force = 12
 	hitsound_crush = list('sound/trauma/punch2.ogg', 'sound/trauma/punch3.ogg')
@@ -199,3 +254,13 @@
 	inhand_state = "club"
 	bloody_inhand_state = "clubb"
 	bloody_icon_state = "club_blood"
+/obj/item/weapon/gurps/examine()
+	..()
+	var/text = get_sharpness_text()
+	if(text) usr << "[text] Острота: [sharpness]%."
+
+/obj/item/weapon/gurps/afterattack(atom/target, mob/user, flag)
+	..()
+	if(!is_edged_mode() || !target || ismob(target)) return
+	if((isturf(target) && target.density) || (isobj(target) && target.density))
+		reduce_sharpness(2)

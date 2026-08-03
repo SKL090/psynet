@@ -251,64 +251,56 @@ obj/item/clothing/gloves/var
 obj/decal/cleanable/blood/var/track_amt = 3
 
 
+// Blood pool footprints: three fresh prints, then two fading prints.
+// Entering a pool resets the counter; every subsequent moved tile leaves one print.
+// Blood transfer creates two footprints per moved tile: one while leaving and
+// one while entering. Three tiles are fresh; the next two are faded.
 turf/Exited(mob/living/carbon/human/M)
-	if(istype(M,/mob/living))
-		if(!istype(src, /turf/space))  // Bloody tracks code starts here
-			if(M.track_blood > 0)
-				M.track_blood--
-				src.add_bloody_footprints(M.track_blood_mob,1,M.dir,get_tracks(M))
-			else if(istype(M,/mob/living/carbon/human))
-				if(M.shoes)
-					if(M.shoes.track_blood > 0)
-						M.shoes.track_blood--
-						src.add_bloody_footprints(M.shoes.track_blood_mob,1,M.dir,M.shoes.name) // And bloody tracks end here
+	if(istype(M, /mob/living/carbon/human) && !istype(src, /turf/space) && M.track_blood > 0)
+		var/tile_number = 6 - M.track_blood
+		src.add_bloody_footprints(M, M.dir, tile_number, TRUE)
 	. = ..()
+
 turf/Entered(mob/living/carbon/human/M)
-	if(istype(M,/mob/living))
-		if(M.track_blood > 0)
-			M.track_blood--
-			src.add_bloody_footprints(M.track_blood_mob,0,M.dir,get_tracks(M))
-		else if(istype(M,/mob/living/carbon/human))
-			if(M.shoes && !istype(src,/turf/space))
-				if(M.shoes.track_blood > 0)
-					M.shoes.track_blood--
-					src.add_bloody_footprints(M.shoes.track_blood_mob,0,M.dir,M.shoes.name)
-
+	if(istype(M, /mob/living/carbon/human) && !istype(src, /turf/space))
+		var/touched_blood = FALSE
 		for(var/obj/decal/cleanable/blood/B in src)
-			if(B.track_amt <= 0) continue
-			if(B.type != /obj/decal/cleanable/blood/tracks && B.type != /obj/decal/cleanable/blood/drip)
-				if(istype(M,/mob/living/carbon/human))
-					if(M.shoes)
-						M.shoes.add_blood(B.blood_owner)
-						M.shoes.track_blood_mob = B.blood_owner
-						M.shoes.track_blood = max(M.shoes.track_blood,8)
-				else
-					M.add_blood(B.blood_owner)
-					M.track_blood_mob = B.blood_owner
-					M.track_blood = max(M.track_blood,8)
-				B.track_amt--
+			// Pools, normal blood and splatter transfer blood. Drips and tracks do not.
+			if(istype(B, /obj/decal/cleanable/blood/pool) || istype(B, /obj/decal/cleanable/blood/splatter) || B.type == /obj/decal/cleanable/blood)
+				M.track_blood = 5
+				M.track_blood_mob = B.blood_owner
+				touched_blood = TRUE
 				break
+
+		// Do not create a footprint on the source tile itself. The first pair
+		// appears when the character leaves it for the next tile.
+		if(!touched_blood && M.track_blood > 0)
+			var/tile_number = 6 - M.track_blood
+			src.add_bloody_footprints(M, M.dir, tile_number, FALSE)
+			M.track_blood--
 	. = ..()
 
-turf/proc/add_bloody_footprints(mob/living/carbon/human/M,leaving,d,info)
-	for(var/obj/decal/cleanable/blood/tracks/T in src)
-		if(T.dir == d)
-			if((leaving && T.icon_state == "steps2") || (!leaving && T.icon_state == "steps1"))
-				T.desc = "These bloody footprints appear to have been made by [info]."
-				if(istype(M,/mob/living/carbon/human))
-					T.blood_DNA = M.dna.unique_enzymes
-					T.blood_type = M.b_type
-				return
-	var/obj/decal/cleanable/blood/tracks/this = new(src)
-	if(leaving)
-		this.icon_state = "steps2"
+turf/proc/add_bloody_footprints(mob/living/carbon/human/M, d, tile_number, leaving)
+	var/state
+	if(tile_number <= 3)
+		// steps10 is the incoming footprint; steps20 is the outgoing one.
+		state = leaving ? "steps20" : "steps10"
 	else
-		this.icon_state = "steps1"
-	this.dir = d
-	this.desc = "These bloody footprints appear to have been made by [info]."
-	if(istype(M,/mob/living/carbon/human))
-		this.blood_DNA = M.dna.unique_enzymes
-		this.blood_type = M.b_type
+		// Faded pair follows the same order.
+		state = leaving ? "steps202" : "steps102"
+
+	for(var/obj/decal/cleanable/blood/tracks/T in src)
+		if(T.dir == d && T.icon_state == state)
+			return
+
+	var/obj/decal/cleanable/blood/tracks/track = new(src)
+	track.icon = 'icons/effects/blood.dmi'
+	track.icon_state = state
+	track.dir = d
+	track.desc = "These bloody footprints appear to have been made by [get_tracks(M)]."
+	if(M.dna)
+		track.blood_DNA = M.dna.unique_enzymes
+	track.blood_type = M.b_type
 
 proc/get_tracks(mob/M)
 	if(istype(M,/mob/living))

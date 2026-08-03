@@ -25,14 +25,7 @@
 /proc/gurps_spawn_artery_spray(mob/living/carbon/human/H)
 	if(!H || !isturf(H.loc)) return
 
-	var/obj/decal/cleanable/blood/pool/P = locate() in H.loc
-	if(!P)
-		P = new /obj/decal/cleanable/blood/pool(H.loc)
-		if(H.dna) P.blood_DNA = H.dna.unique_enzymes
-		P.blood_type = H.b_type
-		if(H.microorganism) P.microorganism = H.microorganism.getcopy()
-	else
-		P.add_pool_blood(10)
+	H.gurps_spill_blood_to_pool(10)
 
 	for(var/i = 1 to 4)
 		var/turf/T = get_step(H, pick(cardinal))

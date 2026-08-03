@@ -2,6 +2,46 @@
 // humanlife.dm - HUMAN LIFEWEB (МИНИМАЛЬНЫЕ ПРАВКИ)
 // ============================
 
+/mob/living/carbon/human
+	var/gurps_visual_lying = FALSE
+
+/mob/living/carbon/human/proc/gurps_is_prone()
+	// This flag is written at the same instant update_clothing() chooses
+	// the standing or lying sprite, so gameplay cannot lag behind visuals.
+	return lying || resting || gurps_visual_lying
+
+/mob/living/carbon/human/proc/gurps_has_leg_impairment()
+	for(var/zone in list("l_leg", "r_leg", "l_foot", "r_foot"))
+		var/datum/organ/external/E = organs[zone]
+		if(E && !E.destroyed && (E.broken || E.tendon_damaged))
+			return TRUE
+	return FALSE
+
+/mob/living/carbon/human/proc/gurps_try_get_up(mob/helper = null)
+	if(!gurps_is_prone()) return FALSE
+	if(!lying) lying = 1
+	if(gurps_has_leg_impairment())
+		visible_message("<span class='warning'>[src] пытается потешно подняться, но ноги не слушаются!</span>", "<span class='warning'>Ноги не слушаются! Вы не можете подняться.</span>")
+		return FALSE
+	if(stat == 2 || paralysis || stunned || weakened)
+		if(!helper) src << "<span class='warning'>Вы пока не можете подняться.</span>"
+		return FALSE
+	lying = 0
+	resting = 0
+	update_clothing()
+	if(helper) visible_message("<span class='notice'>[helper] помогает [src] подняться.</span>")
+	else visible_message("<span class='notice'>[src] поднимается на ноги.</span>")
+	return TRUE
+
+/mob/living/carbon/human/proc/gurps_rest_button()
+	if(lying)
+		if(resting && weakened <= 5)
+			resting = 0
+			weakened = 0
+		gurps_try_get_up()
+		return
+	resting = !resting
+
 /mob/living/carbon/human/proc/radiation_protection()
 	if(istype(wear_suit, /obj/item/clothing/suit/bio_suit))
 		return 40
@@ -167,25 +207,43 @@
 
 	return 1
 
+/mob/living/carbon/human/proc/gurps_has_pool_bleeding()
+	for(var/organ_name in organs)
+		var/datum/organ/external/E = organs[organ_name]
+		if(istype(E) && (E.artery_cut || E.destroyed)) return TRUE
+	return FALSE
+/mob/living/carbon/human/proc/gurps_add_blood_to_pool(amount)
+	if(amount <= 0 || !isturf(loc)) return
+	var/obj/decal/cleanable/blood/pool/P = locate() in loc
+	if(!P)
+		P = new /obj/decal/cleanable/blood/pool(loc)
+		if(dna) P.blood_DNA = dna.unique_enzymes
+		P.blood_type = b_type
+	P.add_pool_blood(amount)
+/mob/living/carbon/human/proc/gurps_spill_blood_to_pool(amount)
+	if(amount <= 0 || !vessel) return 0
+	var/spilled = min(amount, vessel.get_reagent_amount("blood"))
+	if(spilled <= 0) return 0
+	vessel.remove_reagent("blood", spilled)
+	gurps_add_blood_to_pool(spilled)
+	return spilled
 /mob/living/carbon/human/proc/drip(var/amt as num)
-	if(!amt)
-		return
+	if(!amt || !vessel) return
+	var/amm = min(0.1 * amt, vessel.get_reagent_amount("blood"))
+	if(amm <= 0) return
+	vessel.remove_reagent("blood",amm)
+	if(gurps_has_pool_bleeding()) gurps_add_blood_to_pool(amm)
 	var/turf/T = src.loc
 	var/nums
-	var/amm = 0.1 * amt
-	vessel.remove_reagent("blood",amm)
 	for(var/obj/decal/cleanable/blood/drip/D in T)
 		nums++
-		if(nums >= 3)
-			return
+		if(nums >= 3) return
 	var/obj/decal/cleanable/blood/drip/this = new(T)
-	var/hax = pick("1","2","3","4","5")
-	this.icon_state = hax
+	this.icon_state = pick("1","2","3","4","5")
 	this.blood_DNA = src.dna.unique_enzymes
 	this.blood_type = src.b_type
 	this.blood_owner = src
-	if(src.microorganism)
-		this.microorganism = src.microorganism.getcopy()
+
 
 /mob/living/carbon/human/handle_regular_status_updates()
 	for(var/datum/organ/external/E in GetOrgans())
@@ -256,8 +314,7 @@
 			drop_item()
 			hand = h
 		else
-			lying = 0
-			stat = 0
+			if(!lying) stat = 0
 	else
 		lying = 1
 		blinded = 1
@@ -339,7 +396,7 @@
 		ear_damage -= 0.05
 		ear_damage = max(ear_damage, 0)
 
-	density = !( lying )
+	density = !gurps_is_prone()
 
 	if ((disabilities & 128 || istype(glasses, /obj/item/clothing/glasses/blindfold)))
 		blinded = 1

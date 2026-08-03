@@ -63,10 +63,12 @@
 // ---------- БОЕВОЙ РЕЖИМ ----------
 /mob/living/carbon/human
 	var/gurps_combat_mode = FALSE
-	var/gurps_defense_active = FALSE
-	var/gurps_dodge_penalty = 0
-	var/gurps_last_defense_time = 0
-	var/gurps_defense_cooldown = 15
+	// Новый человек начинает с подготовленным уклонением.
+	var/gurps_defense_active = TRUE
+	var/obj/screen/gurps_defense_icon = null
+	// Number of parries made during the current GURPS one-second turn.
+	var/gurps_parry_turn = -1
+	var/gurps_parry_count = 0
 
 /mob/living/carbon/human/verb/gurps_toggle_combat_mode()
 	set name = "Боевой режим"
@@ -89,85 +91,106 @@
 	return 0
 
 // ---------- АКТИВНАЯ ЗАЩИТА ----------
-/mob/living/carbon/human/verb/gurps_defense_dodge()
-	set name = "Уклонение"
-	set category = "GURPS"
+/mob/living/carbon/human/proc/gurps_update_defense_hud()
+	if(!gurps_defense_icon) return
+	gurps_defense_icon.icon_state = (gurps_defense_mode == "dodge") ? "dodge1" : "dodge0"
 
-	if(world.time < gurps_last_defense_time + gurps_defense_cooldown)
-		src << "<span class='warning'>Вы слишком устали, чтобы уклоняться!</span>"
-		return
+/mob/living/carbon/human/proc/gurps_prepare_defense(mode)
+	// Выбранный режим уже постоянно активен: повторный клик ничего не делает.
+	if((mode == "dodge" && gurps_defense_mode == "dodge") || (mode == "parry" && gurps_defense_mode != "dodge"))
+		return FALSE
 
-	gurps_defense_mode = "dodge"
-	gurps_defense_active = TRUE
-	gurps_last_defense_time = world.time
-
-	src << "<span class='notice'>Вы готовитесь уклониться!</span>"
-	src.visible_message("<span class='warning'>[src] принимает защитную стойку!</span>")
-
-/mob/living/carbon/human/verb/gurps_defense_parry()
-	set name = "Парирование"
-	set category = "GURPS"
-
+	if(mode == "dodge")
+		gurps_defense_mode = "dodge"
+		gurps_defense_active = TRUE
+		gurps_update_defense_hud()
+		src << "<span class='notice'>Вы готовитесь уклониться!</span>"
+		src.visible_message("<span class='warning'>[src] готовится к активной защите!</span>")
+		return TRUE
 	var/obj/item/weapon/WPN = (hand ? l_hand : r_hand)
 	if(!WPN)
-		src << "<span class='notice'>Вы готовитесь парировать кулаками.</span>"
-		src.visible_message("<span class='warning'>[src] поднимает руки для блокирования!</span>")
 		gurps_defense_mode = "parry_fist"
 		gurps_defense_active = TRUE
-		gurps_last_defense_time = world.time
-		return
-
+		gurps_update_defense_hud()
+		src << "<span class='notice'>Вы готовитесь парировать руками.</span>"
+		return TRUE
 	if(WPN.force < 5)
-		src << "<span class='warning'>Это оружие слишком слабое для парирования!</span>"
-		return
-
-	if(world.time < gurps_last_defense_time + gurps_defense_cooldown)
-		src << "<span class='warning'>Вы слишком устали, чтобы парировать!</span>"
-		return
-
+		src << "<span class='warning'>Это оружие слишком лёгкое для парирования!</span>"
+		return FALSE
 	gurps_defense_mode = "parry"
 	gurps_defense_active = TRUE
-	gurps_last_defense_time = world.time
-
+	gurps_update_defense_hud()
 	src << "<span class='notice'>Вы готовитесь парировать [WPN]!</span>"
-	src.visible_message("<span class='warning'>[src] поднимает [WPN] для парирования!</span>")
+	return TRUE
 
-/mob/living/carbon/human/verb/gurps_defense_cancel()
-	set name = "Отменить защиту"
-	set category = "GURPS"
-	gurps_defense_active = FALSE
-	src << "<span class='notice'>Вы вышли из защитной стойки.</span>"
+/obj/screen/gurps_defense
+	name = "gurps_defense"
+	icon = 'icons/mob/HUD/lifeweb hud.dmi'
+	icon_state = "dodge1"
+	mouse_opacity = 1
+
+/obj/screen/gurps_defense/Click(location, control, params)
+	if(!ishuman(usr)) return
+	var/mob/living/carbon/human/H = usr
+	var/list/click_params = params2list(params)
+	var/icon_y = text2num(click_params["icon-y"])
+	if(icon_y > 16)
+		H.gurps_prepare_defense("dodge")
+	else
+		H.gurps_prepare_defense("parry")
 
 /mob/living/carbon/human/proc/gurps_defense_roll(attacker_skill)
 	if(!gurps_defense_active) return list("success" = FALSE)
 
-	var/defense_skill = gurps_dexterity
-	defense_skill -= gurps_dodge_penalty
+	var/defense_skill = 0
+	if(gurps_defense_mode == "dodge")
+		// GURPS 4e: Dodge = floor(Basic Speed) + 3.
+		var/basic_speed = (gurps_dexterity + gurps_health) / 4
+		defense_skill = (basic_speed - (basic_speed % 1)) + 3
+	else if(gurps_defense_mode == "parry_fist")
+		// GURPS 4e: Parry = floor(Skill / 2) + 3.
+		var/brawling_skill = gurps_get_skill("brawling")
+		defense_skill = ((brawling_skill - (brawling_skill % 2)) / 2) + 3
+	else if(gurps_defense_mode == "parry")
+		var/obj/item/weapon/WPN = (hand ? l_hand : r_hand)
+		if(!WPN || WPN.force < 5) return list("success" = FALSE)
+		var/parry_skill
+		if(istype(WPN, /obj/item/weapon/gurps))
+			var/obj/item/weapon/gurps/GW = WPN
+			parry_skill = gurps_get_skill(GW.gurps_skill)
+		else
+			parry_skill = gurps_dexterity - 1
+		parry_skill -= gurps_hand_finger_penalty()
+		defense_skill = ((parry_skill - (parry_skill % 2)) / 2) + 3
+	else
+		return list("success" = FALSE)
 
 	if(lying || paralysis) defense_skill -= 3
 	else if(stunned) defense_skill -= 4
 
+	// Project-specific modifiers: combat stance remains meaningful.
 	defense_skill += gurps_combat_bonus()
-	defense_skill = min(defense_skill, 14)
+	if(!gurps_combat_mode) defense_skill -= 2
+
+	// GURPS 4e: every parry after the first during the same one-second turn
+	// receives cumulative -4. Dodge has no equivalent repeat penalty.
+	if(gurps_defense_mode != "dodge")
+		var/current_turn = world.time - (world.time % 10)
+		if(gurps_parry_turn != current_turn)
+			gurps_parry_turn = current_turn
+			gurps_parry_count = 0
+		defense_skill -= gurps_parry_count * 4
+		gurps_parry_count++
 
 	var/list/result = gurps_skill_check(defense_skill)
-
 	if(result["success"])
-		gurps_dodge_penalty = min(5, gurps_dodge_penalty + 2)
-		gurps_defense_active = FALSE
-
 		if(gurps_defense_mode == "parry")
 			var/obj/item/weapon/WPN = (hand ? l_hand : r_hand)
 			if(WPN && istype(WPN, /obj/item/weapon/gurps))
 				var/obj/item/weapon/gurps/GW = WPN
 				playsound(src.loc, GW.get_parry_sound(), 60, 1)
-			else if(WPN)
-				playsound(src.loc, 'sound/weapons/parry.ogg', 50, 1)
-
+			else if(WPN) playsound(src.loc, 'sound/weapons/parry.ogg', 50, 1)
 		src << "<span class='notice'>Вы успешно защитились!</span>"
-	else
-		gurps_dodge_penalty = max(0, gurps_dodge_penalty - 1)
-
 	return result
 
 // ---------- ОТБРАСЫВАНИЕ ----------
@@ -307,6 +330,20 @@
 	return 0
 
 // ---------- УДАР РУКОЙ ----------
+/proc/gurps_target_has_hard_armor(mob/living/carbon/human/H, zone)
+	if(!H) return FALSE
+	zone = gurps_normalize_zone(zone)
+	if(zone == "head") return istype(H.head, /obj/item/clothing/head/helmet)
+	if(zone in list("chest", "vitals", "groin"))
+		return istype(H.wear_suit, /obj/item/clothing/suit/armor) || istype(H.wear_suit, /obj/item/clothing/suit/swat_suit)
+	return FALSE
+
+/proc/gurps_is_metal_weapon(obj/item/weapon/W)
+	if(istype(W, /obj/item/weapon/gurps))
+		var/obj/item/weapon/gurps/GW = W
+		return GW.gurps_metal
+	return W && W.force >= 10
+
 /proc/gurps_unarmed_attack(mob/living/carbon/human/attacker, mob/living/carbon/human/target)
 	if(!istype(attacker) || !istype(target)) return
 	if(!attacker.gurps_spend_endurance(1)) return
@@ -326,16 +363,10 @@
 	skill += attacker.gurps_combat_bonus()
 	skill += target.gurps_combat_penalty()
 
-	var/attack_dir = get_dir(attacker, target)
-	var/target_dir = target.dir
 	var/ignore_defense = FALSE
-
-	if(attack_dir == turn(target_dir, 180))
-		skill += 4
-		ignore_defense = TRUE
-		target.gurps_defense_active = FALSE
-	else if(attack_dir == turn(target_dir, 90) || attack_dir == turn(target_dir, -90))
+	if(gurps_is_behind_fov(target, attacker))
 		skill += 2
+		ignore_defense = TRUE
 
 	var/list/attack = gurps_skill_check(skill)
 
@@ -393,7 +424,7 @@
 			gurps_combat_defense_message(attacker, target, null, target.gurps_defense_mode)
 			return
 
-	var/damage = max(1, (attacker.gurps_strength - 10) + rand(1, 4))
+	var/damage = gurps_roll_basic_damage(attacker.gurps_strength, "thr")
 	damage = round(damage * zone_data["dmg_mult"])
 	var/is_crit = attack["crit"]
 	if(is_crit) damage *= 2
@@ -449,6 +480,12 @@
 		skill_name = GW.gurps_skill
 
 	var/skill = attacker.gurps_get_skill(skill_name)
+	var/finger_penalty = attacker.gurps_hand_finger_penalty()
+	if(finger_penalty >= 4)
+		attacker << "<span class='warning'>В этой руке слишком мало пальцев, чтобы удержать оружие.</span>"
+		attacker.drop_item()
+		return
+	skill -= finger_penalty
 
 	if(!def_zone)
 		def_zone = gurps_get_target_zone(attacker)
@@ -469,22 +506,18 @@
 		var/obj/item/weapon/gurps/GW = weapon
 		skill += GW.gurps_accuracy
 
-	var/attack_dir = get_dir(attacker, target)
-	var/target_dir = target.dir
 	var/ignore_defense = FALSE
-
-	if(attack_dir == turn(target_dir, 180))
-		skill += 4
-		ignore_defense = TRUE
-		target.gurps_defense_active = FALSE
-	else if(attack_dir == turn(target_dir, 90) || attack_dir == turn(target_dir, -90))
+	if(gurps_is_behind_fov(target, attacker))
 		skill += 2
+		ignore_defense = TRUE
 
 	var/list/attack = gurps_skill_check(skill)
 
 	if(attack["crit_fail"])
 		gurps_crit_fail_message(attacker)
 		if(istype(weapon, /obj/item/weapon/gurps))
+			var/obj/item/weapon/gurps/edge_weapon = weapon
+			edge_weapon.reduce_sharpness(2)
 			var/obj/item/weapon/gurps/GW = weapon
 			gurps_play_hit_sound(attacker, GW.get_hit_sound(), 60)
 			gurps_play_hit_sound(attacker, GW.get_miss_sound(), 50)
@@ -545,23 +578,20 @@
 		return
 
 	if(!ignore_defense && !(target.lying || target.weakened) && target.gurps_defense_active)
-		var/list/defense = target.gurps_defense_roll(skill)
-		if(defense["success"])
-			if(target.gurps_defense_mode == "parry_fist")
-				target.visible_message(
-					"<span class='warning'>[target] пытается блокировать [weapon] голыми руками, но безуспешно!</span>",
-					"<span class='danger'>Вы не можете парировать [weapon] голыми руками!</span>"
-				)
-				target.gurps_defense_active = FALSE
-			else
+		// Голыми руками можно парировать только безоружную атаку. Против ножа
+		// и любого вооружённого удара такой бросок защиты не совершается.
+		if(target.gurps_defense_mode != "parry_fist")
+			var/list/defense = target.gurps_defense_roll(skill)
+			if(defense["success"])
+				if(istype(weapon, /obj/item/weapon/gurps))
+					var/obj/item/weapon/gurps/GW = weapon
+					var/obj/item/weapon/defender_weapon = (target.hand ? target.l_hand : target.r_hand)
+					if(gurps_is_metal_weapon(defender_weapon)) GW.reduce_sharpness(2)
 				gurps_play_hit_sound(target, gurps_get_parry_weapon_sound(), 60)
 				gurps_combat_defense_message(attacker, target, weapon, target.gurps_defense_mode)
-			return
+				return
 
-	var/damage = weapon.force + (attacker.gurps_strength - 10)
-	if(istype(weapon, /obj/item/weapon/gurps))
-		var/obj/item/weapon/gurps/GW = weapon
-		damage += GW.gurps_damage_bonus
+	var/damage = gurps_roll_weapon_damage(attacker, weapon)
 	damage = round(damage * zone_data["dmg_mult"])
 	var/is_crit = attack["crit"]
 	if(is_crit) damage = round(damage * 1.5)
@@ -592,6 +622,9 @@
 
 	if(weapon && istype(weapon, /obj/item/weapon/gurps))
 		var/obj/item/weapon/gurps/GW = weapon
+		if(gurps_target_has_hard_armor(target, def_zone)) GW.reduce_sharpness(2)
+		if(E.broken && !was_broken) GW.reduce_sharpness(2)
+		if(E.destroyed) GW.reduce_sharpness(3)
 		GW.make_bloody()
 
 	var/effect_msg = gurps_determine_effect(E, was_broken, was_artery, was_tendon, is_crit)
