@@ -12,6 +12,7 @@
 /mob/var/obj/screen/pain = null
 /mob/var/obj/screen/blind = null
 /mob/var/obj/screen/hands = null
+/mob/var/obj/screen/hand_selector = null
 /mob/var/obj/screen/mach = null
 /mob/var/obj/screen/sleep = null
 /mob/var/obj/screen/rest = null
@@ -741,6 +742,21 @@ mob/verb/turnwest()
 /obj/screen/grab/attackby()
 	return
 
+// One Lifeweb button: upper half toggles throwing, lower half drops the item.
+/obj/screen/throw_drop
+	icon = 'icons/mob/HUD/hud.dmi'
+	mouse_opacity = 1
+
+/obj/screen/throw_drop/Click(location, control, params)
+	var/list/click_params = params2list(params)
+	var/icon_y = text2num(click_params["icon-y"])
+
+	if(icon_y > 16)
+		if(!usr.stat && isturf(usr.loc) && !usr.restrained())
+			usr:toggle_throw_mode()
+	else
+		usr.drop_item_v()
+
 /obj/screen/Click(location, control, params)
 
 	var/list/pa = params2list(params)
@@ -951,6 +967,11 @@ mob/verb/turnwest()
 		if("hand")
 			usr:swap_hand()
 		if("resist")
+			if(ishuman(usr))
+				var/mob/living/carbon/human/H = usr
+				for(var/obj/item/weapon/grab/gurps/G in H.grabbed_by)
+					H.gurps_resist_grab()
+					return
 			if (usr.next_move < world.time)
 				return
 			usr.next_move = world.time + 20
@@ -1196,12 +1217,19 @@ mob/verb/turnwest()
 	return
 
 
+/mob/living/carbon/proc/update_hand_hud()
+	if(hands)
+		if(ishuman(src))
+			hands.icon = 'icons/mob/HUD/hud.dmi'
+			hands.icon_state = hand ? "hand_l" : "hand_r"
+		else
+			hands.dir = hand ? SOUTH : NORTH
+	if(hand_selector)
+		hand_selector.screen_loc = hand ? ui_lhand : ui_rhand
+
 /mob/living/carbon/proc/swap_hand()
-	hand = !( hand )
-	if (!( hand ))
-		hands.dir = NORTH
-	else
-		hands.dir = SOUTH
+	hand = !(hand)
+	update_hand_hud()
 	return
 
 /mob/proc/drop_item_v()

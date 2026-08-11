@@ -125,7 +125,7 @@
 
 /obj/screen/gurps_defense
 	name = "gurps_defense"
-	icon = 'icons/mob/HUD/lifeweb hud.dmi'
+	icon = 'icons/mob/HUD/hud.dmi'
 	icon_state = "dodge1"
 	mouse_opacity = 1
 
@@ -363,8 +363,8 @@
 	skill += attacker.gurps_combat_bonus()
 	skill += target.gurps_combat_penalty()
 
-	var/ignore_defense = FALSE
-	if(gurps_is_behind_fov(target, attacker))
+	var/ignore_defense = (attacker == target)
+	if(!ignore_defense && gurps_is_behind_fov(target, attacker))
 		skill += 2
 		ignore_defense = TRUE
 
@@ -424,8 +424,9 @@
 			gurps_combat_defense_message(attacker, target, null, target.gurps_defense_mode)
 			return
 
-	var/damage = gurps_roll_basic_damage(attacker.gurps_strength, "thr")
-	damage = round(damage * zone_data["dmg_mult"])
+	var/list/damage_roll = gurps_roll_basic_damage(attacker.gurps_strength, "thr")
+	var/damage = round(damage_roll["damage"] * zone_data["dmg_mult"])
+	var/low_damage_roll = (damage_roll["roll"] <= damage_roll["dice"] * 2)
 	var/is_crit = attack["crit"]
 	if(is_crit) damage *= 2
 
@@ -453,7 +454,7 @@
 	if(target.stat != 2)
 		gurps_knockback(target, attacker, damage, is_crit)
 
-	gurps_combat_hit_message(attacker, target, null, original_zone, damage, DAMAGE_CRUSH, is_crit, effect_msg)
+	gurps_combat_hit_message(attacker, target, null, original_zone, damage, DAMAGE_CRUSH, is_crit, effect_msg, low_damage_roll)
 
 	target.lastattacker = attacker
 	target.UpdateDamageIcon()
@@ -506,8 +507,8 @@
 		var/obj/item/weapon/gurps/GW = weapon
 		skill += GW.gurps_accuracy
 
-	var/ignore_defense = FALSE
-	if(gurps_is_behind_fov(target, attacker))
+	var/ignore_defense = (attacker == target)
+	if(!ignore_defense && gurps_is_behind_fov(target, attacker))
 		skill += 2
 		ignore_defense = TRUE
 
@@ -591,8 +592,9 @@
 				gurps_combat_defense_message(attacker, target, weapon, target.gurps_defense_mode)
 				return
 
-	var/damage = gurps_roll_weapon_damage(attacker, weapon)
-	damage = round(damage * zone_data["dmg_mult"])
+	var/list/damage_roll = gurps_roll_weapon_damage(attacker, weapon)
+	var/damage = round(damage_roll["damage"] * zone_data["dmg_mult"])
+	var/low_damage_roll = (damage_roll["roll"] <= damage_roll["dice"] * 2)
 	var/is_crit = attack["crit"]
 	if(is_crit) damage = round(damage * 1.5)
 
@@ -632,7 +634,7 @@
 	if(target.stat != 2)
 		gurps_knockback(target, attacker, damage, is_crit)
 
-	gurps_combat_hit_message(attacker, target, weapon, original_zone, damage, dmg_type, is_crit, effect_msg)
+	gurps_combat_hit_message(attacker, target, weapon, original_zone, damage, dmg_type, is_crit, effect_msg, low_damage_roll)
 
 	target.lastattacker = attacker
 	target.UpdateDamageIcon()

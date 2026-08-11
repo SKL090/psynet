@@ -45,6 +45,7 @@
 
 	var/artery_cut = 0
 	var/tendon_damaged = 0
+	var/gurps_grab_paralysis = 0
 	var/gurps_next_dismember_check = 0
 	var/gurps_next_artery_check = 0
 	var/gurps_next_tendon_check = 0
@@ -53,6 +54,7 @@
 /datum/organ/external/process()
 	if(destroyed && destspawn)
 		droplimb()
+	if(gurps_grab_paralysis > 0) gurps_grab_paralysis--
 	if(broken == 0)
 		perma_dmg = 0
 	if(parent && parent.destroyed)
@@ -108,6 +110,7 @@
 
 /datum/organ/internal/liver
 	name = "liver"
+	var/last_toxin_time = 0
 
 /datum/organ/internal/kidney
 	name = "kidney"
@@ -146,7 +149,6 @@
 	display_name = "chest"
 	var/datum/organ/internal/heart
 	var/datum/organ/internal/lungs
-	var/datum/organ/internal/liver
 
 /datum/organ/external/vitals
 	name = "vitals"
@@ -154,6 +156,7 @@
 	max_damage = 100
 	min_broken_damage = 50
 	display_name = "живот"
+	var/datum/organ/internal/liver
 	var/datum/organ/internal/kidney_left
 	var/datum/organ/internal/kidney_right
 	var/datum/organ/internal/stomach
@@ -206,6 +209,7 @@
 	min_broken_damage = 15
 	display_name = "left hand"
 	var/fingers = 5
+	var/list/finger_names = list("большой", "указательный", "средний", "безымянный", "мизинец")
 	var/gurps_next_finger_check = 3
 
 /datum/organ/external/l_leg
@@ -236,6 +240,7 @@
 	min_broken_damage = 15
 	display_name = "right hand"
 	var/fingers = 5
+	var/list/finger_names = list("большой", "указательный", "средний", "безымянный", "мизинец")
 	var/gurps_next_finger_check = 3
 
 /datum/organ/external/r_leg
@@ -260,11 +265,11 @@
 	var/mob/living/carbon/human/H = C.owner
 	if(istype(C.heart)) process_heart(C.heart, H)
 	if(istype(C.lungs)) process_lungs(C.lungs, H)
-	if(istype(C.liver)) process_liver(C.liver, H)
 
 /proc/process_vitals_organs(datum/organ/external/vitals/V)
 	if(!V || !V.owner || !ishuman(V.owner)) return
 	var/mob/living/carbon/human/H = V.owner
+	if(istype(V.liver)) process_liver(V.liver, H)
 	if(istype(V.kidney_left) && istype(V.kidney_right)) process_kidneys(V.kidney_left, V.kidney_right, H)
 	if(istype(V.stomach)) process_stomach(V.stomach, H)
 	if(istype(V.intestines)) process_intestines(V.intestines, H)
@@ -292,9 +297,9 @@
 
 /proc/process_heart(datum/organ/internal/heart/HT, mob/living/carbon/human/H)
 	switch(HT.status)
-		if("bruised")  if(prob(5)) H.oxyloss += 1
-		if("damaged")  {H.oxyloss += 2; if(prob(10)) H.emote("gasp")}
-		if("ruptured") {H.oxyloss += 5; if(prob(5)) H.death()}
+		if("bruised")  H.oxyloss += 1
+		if("damaged")  {H.oxyloss += 4; if(prob(20)) H.emote("gasp")}
+		if("ruptured") {H.oxyloss += 12; H.losebreath += 4; if(prob(25)) H.death()}
 		if("destroyed") H.death()
 
 /proc/process_lungs(datum/organ/internal/lungs/L, mob/living/carbon/human/H)
@@ -307,10 +312,10 @@
 			H.cough_blood()
 
 	switch(L.status)
-		if("bruised")  if(prob(10)) H.losebreath += 1
-		if("damaged")  {H.losebreath += 3; if(prob(5)) H.cough_blood()}
-		if("ruptured") {H.losebreath += 8; H.oxyloss += 3}
-		if("destroyed") {H.oxyloss += 10; if(prob(15)) H.death()}
+		if("bruised")  H.losebreath += 1
+		if("damaged")  {L.fluid_filled = TRUE; H.losebreath += 4; H.oxyloss += 2}
+		if("ruptured") {L.fluid_filled = TRUE; H.losebreath += 10; H.oxyloss += 6}
+		if("destroyed") {H.oxyloss += 15; if(prob(35)) H.death()}
 
 /proc/process_brain(datum/organ/internal/brain/B, mob/living/carbon/human/H)
 	switch(B.status)
@@ -320,11 +325,16 @@
 		if("destroyed") H.death()
 
 /proc/process_liver(datum/organ/internal/liver/L, mob/living/carbon/human/H)
-	switch(L.status)
-		if("bruised")  if(prob(5)) H.toxloss += 1
-		if("damaged")  H.toxloss += 3
-		if("ruptured") {H.toxloss += 6; H.bloodloss += 2}
-		if("destroyed") {H.toxloss += 10; if(prob(5)) H.death()}
+	// A damaged liver poisons the body at a fixed five-second interval.
+	if(L.status in list("damaged", "ruptured", "destroyed"))
+		if(world.time >= L.last_toxin_time + 50)
+			L.last_toxin_time = world.time
+			switch(L.status)
+				if("damaged") H.toxloss += 3
+				if("ruptured") {H.toxloss += 6; H.bloodloss += 2}
+				if("destroyed") {H.toxloss += 10; if(prob(5)) H.death()}
+	else if(L.status == "bruised")
+		if(prob(5)) H.toxloss += 1
 
 /proc/process_kidneys(datum/organ/internal/kidney/KL, datum/organ/internal/kidney/KR, mob/living/carbon/human/H)
 	var/total = ((KL.status=="destroyed"||KL.status=="ruptured")?1:0) + ((KR.status=="destroyed"||KR.status=="ruptured")?1:0)
@@ -523,22 +533,25 @@
 			if(LH) LH.gurps_next_finger_check += 3
 			else RH.gurps_next_finger_check += 3
 			var/fingers_to_cut = min(fingers, max(1, round(brute / 3)))
-			if(LH) LH.fingers -= fingers_to_cut
-			else RH.fingers -= fingers_to_cut
+			var/list/names = LH ? LH.finger_names : RH.finger_names
 			if(owner && ishuman(owner))
 				var/mob/living/carbon/human/H = owner
 				for(var/i = 1 to fingers_to_cut)
+					var/finger_name = pick(names)
+					names -= finger_name
 					var/obj/item/weapon/organ/finger/F = new(H.loc)
-					F.name = "отрезанный палец [H.real_name]"
+					F.name = "отрезанный [finger_name] палец [H.real_name]"
 					F.icon_state = pick("finger1", "finger2", "finger3")
 					F.add_blood(H)
 					F.pixel_x = rand(-8, 8)
 					F.pixel_y = rand(-8, 8)
+					H.visible_message("<span class='danger'><B>[H] теряет [finger_name] палец!</B></span>", "<span class='danger'><B>Вам отрезает [finger_name] палец!</B></span>")
+				if(LH) LH.fingers--
+				else RH.fingers--
 				H.bloodloss += fingers_to_cut * 3
 				var/obj/decal/cleanable/blood/splatter/S = new(H.loc)
 				if(H.dna) S.blood_DNA = H.dna.unique_enzymes
 				S.blood_type = H.b_type
-				H.visible_message("<span class='danger'><B>[H] лишается [fingers_to_cut] пальцев!</B></span>", "<span class='danger'><B>Вам отрезает [fingers_to_cut] пальцев!</B></span>")
 				H.pain(display_name, 50 + fingers_to_cut * 10, 1)
 				if((LH && LH.fingers <= 2) || (RH && RH.fingers <= 2)) H.drop_item()
 
@@ -615,47 +628,46 @@
 						V.stomach.health = max(0, V.stomach.health - 20)
 
 	// ===== ВНУТРЕННИЕ ОРГАНЫ ГРУДИ =====
-	if(owner && ishuman(owner) && istype(src,/datum/organ/external/chest) && brute >= 10 && !destroyed)
-		var/mob/living/carbon/human/H = owner
-		var/datum/organ/external/chest/C = src
+	// Any serious penetrating chest wound reaches an organ; pierce penetrates deeper.
+	if(owner && ishuman(owner) && istype(src,/datum/organ/external/chest) && brute >= 5 && !destroyed)
 		if(dmg_type == DAMAGE_CUT || dmg_type == DAMAGE_PIERCE)
-			var/organ_chance = brute * (dmg_type == DAMAGE_PIERCE ? 1.5 : 0.8)
-			if(prob(organ_chance))
-				var/list/orgs = list()
-				if(istype(C.heart)) orgs += C.heart
-				if(istype(C.lungs)) orgs += C.lungs
-				if(istype(C.liver)) orgs += C.liver
-				if(orgs.len)
-					var/datum/organ/internal/O = pick(orgs)
-					O.health = max(0, O.health - brute * (dmg_type == DAMAGE_PIERCE ? 2 : 1))
-					if(O.health <= 0) O.status = "destroyed"
-					else if(O.health < 25) O.status = "ruptured"
-					else if(O.health < 50) O.status = "damaged"
-					else if(O.health < 75) O.status = "bruised"
-					H.visible_message("<span class='danger'><B>Повреждён внутренний орган [H]! ([O.name])</B></span>")
-					H.pain(O.name, 50, 1)
+			var/mob/living/carbon/human/H = owner
+			var/datum/organ/external/chest/C = src
+			var/list/orgs = list()
+			if(istype(C.heart)) orgs += C.heart
+			if(istype(C.lungs)) orgs += C.lungs
+			if(orgs.len)
+				var/datum/organ/internal/O = pick(orgs)
+				var/penetration = brute * (dmg_type == DAMAGE_PIERCE ? 2 : 1)
+				O.health = max(0, O.health - penetration)
+				if(O.health <= 0) O.status = "destroyed"
+				else if(O.health < 25) O.status = "ruptured"
+				else if(O.health < 50) O.status = "damaged"
+				else if(O.health < 75) O.status = "bruised"
+				H.visible_message("<span class='danger'><B>Проникающее ранение повреждает [O.name] [H]!</B></span>")
+				H.pain(O.name, 50, 1)
 
 	// ===== ВНУТРЕННИЕ ОРГАНЫ ЖИВОТА =====
-	if(owner && ishuman(owner) && istype(src,/datum/organ/external/vitals) && brute >= 10 && !destroyed)
-		var/mob/living/carbon/human/H = owner
-		var/datum/organ/external/vitals/V = src
+	if(owner && ishuman(owner) && istype(src,/datum/organ/external/vitals) && brute >= 5 && !destroyed)
 		if(dmg_type == DAMAGE_CUT || dmg_type == DAMAGE_PIERCE)
-			var/organ_chance = brute * (dmg_type == DAMAGE_PIERCE ? 1.5 : 0.8)
-			if(prob(organ_chance))
-				var/list/orgs = list()
-				if(istype(V.kidney_left)) orgs += V.kidney_left
-				if(istype(V.kidney_right)) orgs += V.kidney_right
-				if(istype(V.stomach)) orgs += V.stomach
-				if(istype(V.intestines)) orgs += V.intestines
-				if(orgs.len)
-					var/datum/organ/internal/O = pick(orgs)
-					O.health = max(0, O.health - brute * (dmg_type == DAMAGE_PIERCE ? 2 : 1))
-					if(O.health <= 0) O.status = "destroyed"
-					else if(O.health < 25) O.status = "ruptured"
-					else if(O.health < 50) O.status = "damaged"
-					else if(O.health < 75) O.status = "bruised"
-					H.visible_message("<span class='danger'><B>Повреждён внутренний орган [H]! ([O.name])</B></span>")
-					H.pain(O.name, 50, 1)
+			var/mob/living/carbon/human/H = owner
+			var/datum/organ/external/vitals/V = src
+			var/list/orgs = list()
+			if(istype(V.liver)) orgs += V.liver
+			if(istype(V.kidney_left)) orgs += V.kidney_left
+			if(istype(V.kidney_right)) orgs += V.kidney_right
+			if(istype(V.stomach)) orgs += V.stomach
+			if(istype(V.intestines)) orgs += V.intestines
+			if(orgs.len)
+				var/datum/organ/internal/O = pick(orgs)
+				var/penetration = brute * (dmg_type == DAMAGE_PIERCE ? 2 : 1)
+				O.health = max(0, O.health - penetration)
+				if(O.health <= 0) O.status = "destroyed"
+				else if(O.health < 25) O.status = "ruptured"
+				else if(O.health < 50) O.status = "damaged"
+				else if(O.health < 75) O.status = "bruised"
+				H.visible_message("<span class='danger'><B>Проникающее ранение повреждает [O.name] [H]!</B></span>")
+				H.pain(O.name, 50, 1)
 
 	// ===== МОЗГ =====
 	if(owner && ishuman(owner) && istype(src,/datum/organ/external/head) && brute >= 10 && !destroyed)

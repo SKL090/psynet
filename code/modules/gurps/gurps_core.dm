@@ -108,10 +108,11 @@
 
 /proc/gurps_roll_basic_damage(st, mode = "thr", weapon_modifier = 0)
 	var/list/base = gurps_get_basic_damage(st, mode)
-	var/damage = weapon_modifier + base["modifier"]
+	var/raw_roll = 0
 	for(var/i = 1 to base["dice"])
-		damage += gurps_roll_1d6()
-	return max(1, damage)
+		raw_roll += gurps_roll_1d6()
+	var/damage = max(1, raw_roll + weapon_modifier + base["modifier"])
+	return list("damage" = damage, "roll" = raw_roll, "dice" = base["dice"], "modifier" = weapon_modifier + base["modifier"])
 
 /proc/gurps_roll_weapon_damage(mob/living/carbon/human/attacker, obj/item/weapon/W)
 	if(!attacker || !W) return 1

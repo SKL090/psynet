@@ -7,6 +7,7 @@
 	desc = "Оружие для GURPS-боёвки."
 	icon = 'icons/obj/lwweapons.dmi'
 	var/gurps_skill = "brawling"
+	var/gurps_instrumental_name = null
 	var/gurps_damage_type = DAMAGE_CRUSH
 	var/gurps_alt_type = null
 	var/gurps_current_type = null
@@ -40,6 +41,10 @@
 /obj/item/weapon/gurps/New()
 	..()
 	icon = 'icons/obj/lwweapons.dmi'
+
+/obj/item/weapon/gurps/proc/get_instrumental_name()
+	if(gurps_instrumental_name) return gurps_instrumental_name
+	return name
 
 /obj/item/weapon/gurps/proc/get_miss_sound()
 	if(!hitsound_miss || !hitsound_miss.len) return 'sound/trauma/punchmiss.ogg'
@@ -139,6 +144,7 @@
 // ===== НОЖ =====
 /obj/item/weapon/gurps/knife
 	name = "Боевой нож"
+	gurps_instrumental_name = "боевым ножом"
 	desc = "Боевой нож. Острый и надёжный."
 	icon_state = "combat"
 	item_state = "knife"
@@ -164,6 +170,7 @@
 // ===== МЕЧ =====
 /obj/item/weapon/gurps/sword
 	name = "Меч"
+	gurps_instrumental_name = "мечом"
 	desc = "Обоюдоострый меч."
 	icon_state = "sword"
 	item_state = "claymore"
@@ -190,6 +197,7 @@
 // ===== ЖЕЛЕЗНЫЙ КИНЖАЛ =====
 /obj/item/weapon/gurps/dagger
 	name = "Железный Кинжал"
+	gurps_instrumental_name = "железным кинжалом"
 	desc = "Тонкий кинжал. Только колющие удары."
 	icon_state = "dagger"
 	item_state = "dagger"
@@ -211,6 +219,7 @@
 // ===== ТОПОР =====
 /obj/item/weapon/gurps/axe
 	name = "Боевой топор"
+	gurps_instrumental_name = "боевым топором"
 	desc = "Тяжёлый боевой топор. Можно ударить обухом."
 	icon_state = "combataxe"
 	item_state = "hatchet"
@@ -238,6 +247,7 @@
 // ===== ДУБИНКА =====
 /obj/item/weapon/gurps/club
 	name = "Тяжелая палица"
+	gurps_instrumental_name = "тяжёлой палицей"
 	desc = "Тяжёлая дубинка."
 	icon_state = "club"
 	item_state = "club"

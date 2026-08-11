@@ -136,13 +136,6 @@
 	adding += using
 
 	using = new h_type( src )
-	using.name = "drop"
-	using.icon_state = "act_drop"
-	using.screen_loc = ui_dropbutton
-	using.layer = 19
-	adding += using
-
-	using = new h_type( src )
 	using.name = "i_clothing"
 	using.dir = SOUTH
 	using.icon_state = "center"
@@ -297,9 +290,9 @@
 	using.mouse_opacity = 0
 	vimpaired += using
 
-	mymob.throw_icon = new /obj/screen(null)
+	mymob.throw_icon = new /obj/screen/throw_drop(null)
 	mymob.throw_icon.icon_state = "act_throw_off"
-	mymob.throw_icon.name = "throw"
+	mymob.throw_icon.name = "throw_drop"
 	mymob.throw_icon.screen_loc = ui_throw
 	H.gurps_defense_icon = new /obj/screen/gurps_defense(null)
 	H.gurps_defense_icon.screen_loc = ui_gurps_defense
@@ -361,11 +354,17 @@
 	mymob.pain.screen_loc = "1,1 to 15,15"
 	mymob.pain.layer = 17
 
-	mymob.hands = new /obj/screen( null )
-	mymob.hands.icon_state = "hand"
+	mymob.hands = new /obj/screen(null)
+	mymob.hands.icon = 'icons/mob/HUD/hud.dmi'
 	mymob.hands.name = "hand"
 	mymob.hands.screen_loc = ui_hand
-	mymob.hands.dir = NORTH
+
+	mymob.hand_selector = new /obj/screen(null)
+	mymob.hand_selector.icon = 'icons/mob/HUD/hud.dmi'
+	mymob.hand_selector.icon_state = "sel_hand"
+	mymob.hand_selector.layer = 20
+	mymob.hand_selector.mouse_opacity = 0
+	H.update_hand_hud()
 
 	mymob.sleep = new /obj/screen( null )
 	mymob.sleep.icon_state = "sleep0"
@@ -386,13 +385,45 @@
 	mymob.zone_sel.overlays += image("icon" = 'icons/mob/HUD/zone_sel.dmi', "icon_state" = text("[]", mymob.zone_sel.selecting))
 
 	mymob.zone_sel2 = new /obj/screen/zone_sel(null)
+	// Replace the old green inventory slot art with Lifeweb HUD slots.
+	for(var/obj/screen/S in adding + other)
+		switch(S.name)
+			if("i_clothing")
+				S.icon = 'icons/mob/HUD/hud.dmi'
+				S.icon_state = "center"
+			if("o_clothing")
+				S.icon = 'icons/mob/HUD/hud.dmi'
+				S.icon_state = "o_clothing"
+			if("id")
+				S.icon = 'icons/mob/HUD/hud.dmi'
+				S.icon_state = "ring"
+			if("r_hand")
+				S.icon = 'icons/mob/HUD/hud.dmi'
+				S.icon_state = "r_hand"
+			if("l_hand")
+				S.icon = 'icons/mob/HUD/hud.dmi'
+				S.icon_state = "l_hand"
+			if("mask", "back", "storage1", "storage2", "other", "gloves", "eyes", "ears", "head", "shoes", "belt")
+				S.icon = 'icons/mob/HUD/hud.dmi'
+				switch(S.name)
+					if("mask") S.icon_state = "mask"
+					if("back") S.icon_state = "back"
+					if("storage1", "storage2") S.icon_state = "pocket"
+					if("other") S.icon_state = "other"
+					if("gloves") S.icon_state = "gloves"
+					if("eyes") S.icon_state = "glasses"
+					if("ears") S.icon_state = "ears"
+					if("head") S.icon_state = "hair"
+					if("shoes") S.icon_state = "shoes"
+					if("belt") S.icon_state = "belt"
+
 	mymob.zone_sel2.screen_loc = "EAST+1,NORTH-1"
 	mymob.zone_sel2.icon = 'icons/mob/HUD/zone_sel2.dmi'
 	mymob.zone_sel2.icon_state = "polovina2"
 	mymob.zone_sel2.name = "zone_sel2"
 
 	mymob.client.screen = null
-	mymob.client.screen += list( mymob.pain, mymob.throw_icon, H.gurps_defense_icon, mymob.zone_sel, mymob.zone_sel2, mymob.oxygen, mymob.toxin, mymob.bodytemp, mymob.internals, mymob.fire, mymob.hands, mymob.healths, mymob.pullin, mymob.blind, mymob.flash, mymob.rest, mymob.sleep)
+	mymob.client.screen += list( mymob.pain, mymob.throw_icon, H.gurps_defense_icon, mymob.zone_sel, mymob.zone_sel2, mymob.oxygen, mymob.toxin, mymob.bodytemp, mymob.internals, mymob.fire, mymob.hands, mymob.hand_selector, mymob.healths, mymob.pullin, mymob.blind, mymob.flash, mymob.rest, mymob.sleep)
 	mymob.client.screen += adding + other
 
 	return

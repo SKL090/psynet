@@ -244,13 +244,15 @@
 					C.heart.health = C.heart.max_health
 					C.heart.status = "healthy"
 			if("lungs")
-				if(C && C.lungs)
-					C.lungs.health = C.lungs.max_health
-					C.lungs.status = "healthy"
+				var/datum/organ/internal/lungs/L = C.lungs
+				if(L)
+					L.health = L.max_health
+					L.status = "healthy"
+					L.fluid_filled = FALSE
 			if("liver")
-				if(C && C.liver)
-					C.liver.health = C.liver.max_health
-					C.liver.status = "healthy"
+				if(V && V.liver)
+					V.liver.health = V.liver.max_health
+					V.liver.status = "healthy"
 			if("stomach")
 				if(V && V.stomach)
 					V.stomach.health = V.stomach.max_health

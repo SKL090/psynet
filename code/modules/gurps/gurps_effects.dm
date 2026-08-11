@@ -168,25 +168,37 @@
 		)
 
 // --- СООБЩЕНИЕ ПОПАДАНИЯ ---
-/proc/gurps_combat_hit_message(mob/attacker, mob/target, obj/item/weapon, zone, damage, dmg_type, is_crit, effect_msg)
+/proc/gurps_combat_hit_message(mob/attacker, mob/target, obj/item/weapon, zone, damage, dmg_type, is_crit, effect_msg, low_damage_roll = FALSE)
 	if(!attacker || !target) return
 
 	var/verb = gurps_attack_verb(weapon, zone, damage, dmg_type, is_crit, FALSE)
 	var/zone_name = gurps_zone_name_combat(zone)
 	var/prep = gurps_zone_preposition(zone, weapon)
 
+	var/weapon_name = weapon ? "[weapon]" : ""
+	if(istype(weapon, /obj/item/weapon/gurps))
+		var/obj/item/weapon/gurps/GW = weapon
+		weapon_name = GW.get_instrumental_name()
+
 	var/msg_others = "<span class='danger'>[attacker] [verb]"
-	if(weapon) msg_others += " [weapon]"
-	msg_others += " [prep] [zone_name] [target].</span>"
+	if(weapon)
+		msg_others += " [weapon_name] [zone_name] [target].</span>"
+	else
+		msg_others += " [prep] [zone_name] [target].</span>"
 
 	var/msg_self = "<span class='danger'>Вы [verb]"
-	if(weapon) msg_self += " [weapon]"
-	msg_self += " [prep] [zone_name] [target].</span>"
+	if(weapon)
+		msg_self += " [weapon_name] [zone_name] [target].</span>"
+	else
+		msg_self += " [prep] [zone_name] [target].</span>"
 
 	if(effect_msg)
 		msg_others += " <span class='danger'>[effect_msg]</span>"
 		msg_self += " <span class='danger'>[effect_msg]</span>"
-	else
+	if(is_crit)
+		msg_others += " <span class='danger'><B>Мощный удар!</B></span>"
+		msg_self += " <span class='danger'><B>Мощный удар!</B></span>"
+	else if(!effect_msg && low_damage_roll)
 		msg_others += " <span class='notice'>Заурядный удар.</span>"
 		msg_self += " <span class='notice'>Заурядный удар.</span>"
 

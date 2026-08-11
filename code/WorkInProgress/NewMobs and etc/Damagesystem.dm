@@ -126,10 +126,10 @@
 	chest.heart.owner = src
 	chest.lungs = new /datum/organ/internal/lungs()
 	chest.lungs.owner = src
-	chest.liver = new /datum/organ/internal/liver()
-	chest.liver.owner = src
 
 	// ===== ВНУТРЕННИЕ ОРГАНЫ ЖИВОТА =====
+	vitals.liver = new /datum/organ/internal/liver()
+	vitals.liver.owner = src
 	vitals.kidney_left = new /datum/organ/internal/kidney()
 	vitals.kidney_left.owner = src
 	vitals.kidney_left.name = "left kidney"
@@ -1463,17 +1463,9 @@
 		return
 
 	if (M.a_intent == "grab")
-		if (M == src) return
-		if (M.zombie) return
-		if (w_uniform) w_uniform.add_fingerprint(M)
-		var/obj/item/weapon/grab/G = new /obj/item/weapon/grab(M)
-		G.assailant = M
-		if (M.hand) M.l_hand = G
-		else M.r_hand = G
-		G.layer = 20; G.affecting = src; grabbed_by += G; G.synch()
-		playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
-		for(var/mob/O in viewers(src, null))
-			O.show_message(text("\red [] has grabbed [] passively!", M, src), 1)
+		if(M == src || M.zombie) return
+		if(w_uniform) w_uniform.add_fingerprint(M)
+		M.gurps_attempt_grab(src, M.zone_sel?.selecting)
 		return
 
 	if (M.a_intent == "hurt")
@@ -1829,29 +1821,44 @@
 // ============================
 /mob/living/carbon/human/UpdateDamageIcon()
 	var/list/L = list()
-	for (var/t in organs)
-		if (istype(organs[t], /datum/organ/external))
-			L += organs[t]
+	for(var/t in organs)
+		if(istype(organs[t], /datum/organ/external)) L += organs[t]
 
 	del(body_standing); body_standing = list()
 	del(body_lying); body_lying = list()
 	bruteloss = 0; fireloss = 0
 
-	for (var/datum/organ/external/O in L)
-		if(!O.destroyed)
-			O.update_icon()
-			bruteloss += O.brute_dam
-			fireloss += O.burn_dam
+	// woundsplus/dam_human already contains a separate state for each zone
+	// and damage level. Do not use the obsolete generic-state + dam_mask blend.
+	var/list/visual_zones = list("head", "chest", "r_arm", "l_arm", "r_hand", "l_hand", "r_leg", "l_leg", "r_foot", "l_foot")
+	for(var/datum/organ/external/O in L)
+		if(O.destroyed) continue
+		O.update_icon()
+		bruteloss += O.brute_dam
+		fireloss += O.burn_dam
 
-			if(zombie) O.damage_state = "30"
+		var/zone = O.icon_name
+		if(!(zone in visual_zones)) continue
+		var/state = O.damage_state
+		if(state == "33") state = "30"
+		if(zombie) state = "30"
 
-			var/icon/DI = new /icon('icons/mob/dam_human.dmi', O.damage_state)
-			DI.Blend(new /icon('icons/mob/dam_mask.dmi', O.icon_name), ICON_MULTIPLY)
-			body_standing += DI
+		// Arm/hand sprites are drawn above the base body. Put their wounds above
+		// that layer too, otherwise the damage artwork ends up hidden behind them.
+		var/standing_layer = MOB_LAYER + 0.4
+		var/lying_layer = MOB_LAYER - 0.6
+		if(zone in list("r_arm", "l_arm", "r_hand", "l_hand"))
+			standing_layer = MOB_LAYER + 0.5
+			lying_layer = MOB_LAYER - 0.5
 
-			DI = new /icon('icons/mob/dam_human.dmi', "[O.damage_state]-2")
-			DI.Blend(new /icon('icons/mob/dam_mask.dmi', "[O.icon_name]2"), ICON_MULTIPLY)
-			body_lying += DI
+		var/image/standing_damage = image("icon" = 'icons/mob/dam_human.dmi', "icon_state" = "[zone]_[state]")
+		standing_damage.dir = dir
+		standing_damage.layer = standing_layer
+		body_standing += standing_damage
+
+		var/image/lying_damage = image("icon" = 'icons/mob/dam_human.dmi', "icon_state" = "[zone]2_[state]")
+		lying_damage.layer = lying_layer
+		body_lying += lying_damage
 
 // ============================
 // КРОВАВЫЕ СЛЕДЫ ПРИ ХОДЬБЕ

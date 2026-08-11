@@ -453,6 +453,7 @@
 #include "code\modules\gurps\gurps_combat.dm"
 #include "code\modules\gurps\gurps_core.dm"
 #include "code\modules\gurps\gurps_effects.dm"
+#include "code\modules\gurps\gurps_grab.dm"
 #include "code\modules\gurps\gurps_guns.dm"
 #include "code\modules\gurps\gurps_health.dm"
 #include "code\modules\gurps\gurps_weapon.dm"
