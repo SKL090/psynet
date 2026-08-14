@@ -5,6 +5,17 @@
 /mob/living/carbon/human
 	var/gurps_visual_lying = FALSE
 
+/mob/living/carbon/human
+	var/gurps_eyes_closed = FALSE
+
+/mob/living/carbon/human/proc/gurps_update_conscious_eyes()
+	// Only sleep and unconsciousness close the eyes; paralysis is not unconsciousness.
+	var/should_close = (stat == 1 || sleeping)
+	if(should_close == gurps_eyes_closed) return
+	gurps_eyes_closed = should_close
+	update_face()
+	update_clothing()
+
 /mob/living/carbon/human/proc/gurps_is_prone()
 	// This flag is written at the same instant update_clothing() chooses
 	// the standing or lying sprite, so gameplay cannot lag behind visuals.
@@ -167,8 +178,10 @@
 	if ((blind && stat != 2))
 		if ((blinded))
 			blind.layer = 18
+			blind.alpha = 255
 		else
 			blind.layer = 0
+			blind.alpha = 0
 
 			if (disabilities & 1 && !istype(glasses, /obj/item/clothing/glasses/regular) )
 				client.screen += hud_used.vimpaired
@@ -319,6 +332,8 @@
 		lying = 1
 		blinded = 1
 		stat = 2
+
+	gurps_update_conscious_eyes()
 
 	if (stuttering) stuttering--
 	if (intoxicated) intoxicated--

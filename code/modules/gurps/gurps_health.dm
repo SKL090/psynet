@@ -271,15 +271,14 @@
 	// Синхронизируем перед проверкой
 	gurps_sync_arteries_tendons()
 
-	if(gurps_arteries[zone] == 1)
-		// Исправляем в датуме органа
-		var/datum/organ/external/E = organs[zone]
-		if(E && istype(E))
-			E.artery_cut = 0
-
+	var/datum/organ/external/E = organs[zone]
+	if(E && istype(E) && (E.artery_cut || E.gurps_stump_bleeding))
+		E.artery_cut = 0
+		E.gurps_stump_bleeding = FALSE
 		gurps_arteries[zone] = 0
 		bloodloss = max(0, bloodloss - 10)
-		visible_message("<span class='notice'>Артерия [zone] [src] перевязана.</span>")
+		visible_message("<span class='notice'>Кровотечение [zone] [src] остановлено.</span>")
+		update_clothing()
 		return TRUE
 	return FALSE
 

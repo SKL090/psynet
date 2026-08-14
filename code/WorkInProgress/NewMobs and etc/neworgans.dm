@@ -46,6 +46,7 @@
 	var/artery_cut = 0
 	var/tendon_damaged = 0
 	var/gurps_grab_paralysis = 0
+	var/gurps_stump_bleeding = FALSE
 	var/gurps_next_dismember_check = 0
 	var/gurps_next_artery_check = 0
 	var/gurps_next_tendon_check = 0
@@ -426,8 +427,12 @@
 	// Crushing injury at twice that threshold destroys it. No random chance.
 	if(owner && ishuman(owner) && gurps_is_dismemberable())
 		var/mob/living/carbon/human/H = owner
-		var/destroy_threshold = gurps_crippling_threshold(H) * 2
-		// HT is tested at every new full destruction threshold: HP, 2*HP, etc.
+		// Destruction is intentionally much harder than a fracture/crippling injury.
+		// Limbs need 3x their crippling threshold; the skull needs 2x HP.
+		var/destroy_threshold = gurps_crippling_threshold(H) * 3
+		if(name == "head")
+			destroy_threshold = H.gurps_strength * 2
+		// HT is tested at every new full destruction threshold.
 		// Passing HT delays the loss, but cannot make a heavily mangled part immune forever.
 		if(gurps_next_dismember_check <= 0)
 			gurps_next_dismember_check = destroy_threshold
@@ -440,6 +445,7 @@
 					if(name in list("neck", "l_arm", "r_arm", "l_leg", "r_leg"))
 						artery_cut = 1
 						H.bloodloss = max(H.bloodloss, 25)
+					gurps_stump_bleeding = TRUE
 					destroyed = 1
 					H.visible_message("<span class='danger'><B>[H] лишается [display_name]!</B></span>")
 					// droplimb() plays the original chopping sounds.
@@ -447,6 +453,7 @@
 					return
 				// A neck cannot be gibbed: crushing the head is what explodes it.
 				if(dmg_type == DAMAGE_CRUSH && name != "neck")
+					gurps_stump_bleeding = TRUE
 					destroyed = 1
 					H.visible_message("<span class='danger'><B>[display_name] [H] разрывается в клочья!</B></span>")
 					// droplimb_gib() plays the original gore sound.
@@ -857,6 +864,8 @@
 		var/datum/organ/external/head = H.organs["head"]
 		if(head && !head.destroyed)
 			head.destroyed = 1
+			// Decapitation leaves a bleeding head stump on the body.
+			head.gurps_stump_bleeding = TRUE
 			head.droplimb()
 		H.death()
 		return

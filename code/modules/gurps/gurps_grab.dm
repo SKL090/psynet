@@ -9,6 +9,7 @@
 	icon_state = "blank"
 	var/gurps_grab_zone = ""
 	var/obj/screen/gurps_grab_action/gurps_action_icon = null
+	var/obj/screen/gurps_active_icon = null
 	var/gurps_strangle_active = FALSE
 	var/gurps_takedown_active = FALSE
 
@@ -37,7 +38,7 @@
 	if(held) {src << "<span class='warning'>Нужна свободная активная рука.</span>"; return}
 	if(zone == "l_hand") zone = "l_arm"
 	if(zone == "r_hand") zone = "r_arm"
-	if(!(zone in list("l_arm", "r_arm", "chest", "vitals", "throat", "head", "face", "mouth")))
+	if(!(zone in list("l_arm", "r_arm", "l_leg", "r_leg", "l_foot", "r_foot", "chest", "vitals", "throat", "head", "face", "mouth")))
 		src << "<span class='warning'>Эту зону нельзя схватить.</span>"
 		return
 	var/list/roll = gurps_skill_check(gurps_dexterity + gurps_combat_skills["brawling"])
@@ -66,17 +67,29 @@
 /obj/item/weapon/grab/gurps/proc/gurps_update_action()
 	if(!assailant || !assailant.client) return
 	if(gurps_action_icon) assailant.client.screen -= gurps_action_icon
+	if(gurps_active_icon) assailant.client.screen -= gurps_active_icon
 	gurps_action_icon = null
+	gurps_active_icon = null
 	var/state = null
-	if(gurps_grab_zone in list("l_arm", "r_arm", "head", "face", "mouth")) state = "wrench"
+	if(gurps_grab_zone in list("l_arm", "r_arm", "l_leg", "r_leg", "l_foot", "r_foot", "head", "face", "mouth")) state = "wrench"
 	if(gurps_grab_zone in list("chest", "vitals")) state = "takedown"
 	if(gurps_grab_zone == "throat" && gurps_has_free_second_hand()) state = "strangle"
 	if(!state) return
 	gurps_action_icon = new /obj/screen/gurps_grab_action()
 	gurps_action_icon.grab_owner = src
-	gurps_action_icon.icon_state = gurps_strangle_active ? "strangle_active" : (gurps_takedown_active ? "takedown_active" : state)
+	gurps_action_icon.icon_state = state
 	gurps_action_icon.screen_loc = (assailant.hand ? ui_lhand : ui_rhand)
 	assailant.client.screen += gurps_action_icon
+
+	// Active status is a separate overlay above the base GURPS grab action.
+	if(gurps_strangle_active || gurps_takedown_active)
+		gurps_active_icon = new /obj/screen()
+		gurps_active_icon.icon = 'icons/mob/HUD/hud.dmi'
+		gurps_active_icon.icon_state = gurps_strangle_active ? "strangle_active" : "takedown_active"
+		gurps_active_icon.screen_loc = gurps_action_icon.screen_loc
+		gurps_active_icon.layer = gurps_action_icon.layer + 1
+		gurps_active_icon.mouse_opacity = 0
+		assailant.client.screen += gurps_active_icon
 
 /obj/item/weapon/grab/gurps/proc/gurps_has_free_second_hand()
 	if(!ishuman(assailant)) return FALSE
@@ -90,21 +103,36 @@
 	if(!assailant || !affecting || !ishuman(assailant) || !ishuman(affecting)) return
 	var/mob/living/carbon/human/A = assailant
 	var/mob/living/carbon/human/T = affecting
-	if(gurps_grab_zone in list("l_arm", "r_arm"))
+	if(gurps_grab_zone in list("l_arm", "r_arm", "l_leg", "r_leg", "l_foot", "r_foot"))
 		var/result = gurps_grapple_result(A,T)
 		if(!result) {A.weakened=max(A.weakened,5); T.weakened=max(T.weakened,5); return}
 		if(result < 0) return
 		var/datum/organ/external/E = T.organs[gurps_grab_zone]
 		if(!E) return
-		if(E.gurps_grab_paralysis)
+		if(E.broken)
+			// A repeated wrench on a broken limb attempts a surgical reduction.
+			var/list/surgery = gurps_skill_check(A.gurps_get_skill("surgery"))
+			if(surgery["success"])
+				E.broken = FALSE
+				E.gurps_grab_paralysis = 0
+				T.UpdateDamageIcon()
+				T.update_clothing()
+				T.visible_message("<span class='notice'>[A] вправляет [gurps_grab_zone] [T]!</span>")
+			else if(surgery["crit_fail"])
+				E.tendon_damaged = TRUE
+				T.visible_message("<span class='danger'>Неудачное вправление рвёт сухожилия [T]!</span>")
+			else
+				T.pain(E.display_name, 45, 1)
+				T.visible_message("<span class='warning'>[A] причиняет боль [T], но не вправляет конечность.</span>")
+		else if(E.gurps_grab_paralysis)
 			E.broken = TRUE
 			var/list/ht = gurps_skill_check(T.gurps_health)
 			if(!ht["success"]) E.tendon_damaged = TRUE
-			T.visible_message("<span class='danger'><B>[A] заламывает руку [T]!</B></span>")
+			T.visible_message("<span class='danger'><B>[A] заламывает [gurps_grab_zone] [T]!</B></span>")
 		else
 			E.gurps_grab_paralysis = 5
-			T.gurps_drop_limb_item(gurps_grab_zone)
-			T.visible_message("<span class='danger'><B>[A] заламывает руку [T]!</B></span>")
+			if(gurps_grab_zone in list("l_arm", "r_arm")) T.gurps_drop_limb_item(gurps_grab_zone)
+			T.visible_message("<span class='danger'><B>[A] заламывает [gurps_grab_zone] [T]!</B></span>")
 	if(gurps_grab_zone in list("head", "face", "mouth"))
 		var/result = gurps_grapple_result(A,T)
 		if(!result) {A.weakened=max(A.weakened,5); T.weakened=max(T.weakened,5); return}
@@ -145,6 +173,7 @@
 
 /obj/item/weapon/grab/gurps/Del()
 	if(gurps_action_icon && assailant && assailant.client) assailant.client.screen -= gurps_action_icon
+	if(gurps_active_icon && assailant && assailant.client) assailant.client.screen -= gurps_active_icon
 	if(affecting) affecting.grabbed_by -= src
 	..()
 
@@ -160,25 +189,3 @@
 		if(A && gurps_grapple_result(src,A) > 0) {visible_message("<span class='notice'>[src] вырывается из захвата!</span>"); del(G); return}
 		return
 
-/mob/living/carbon/human/verb/gurps_set_bone(mob/living/carbon/human/T as mob in oview(1))
-	set name = "Вправить конечность"
-	set category = "GURPS"
-	var/list/choices = list()
-	for(var/zone in list("l_arm", "r_arm", "l_leg", "r_leg"))
-		var/datum/organ/external/E = T.organs[zone]
-		if(E && E.broken) choices += zone
-	if(!choices) {src << "<span class='warning'>У цели нет сломанных рук или ног.</span>"; return}
-	var/zone = input(src, "Какую конечность вправить?", "Хирургия") as null|anything in choices
-	if(!zone) return
-	var/list/roll = gurps_skill_check(gurps_get_skill("surgery"))
-	var/datum/organ/external/E = T.organs[zone]
-	if(roll["success"])
-		T.gurps_surgery_fix_fracture(zone)
-		return
-	E.tendon_damaged = TRUE
-	T.visible_message("<span class='danger'>Неудачное вправление повреждает сухожилия [T]!</span>")
-
-/obj/item/weapon/grab/gurps/dropped()
-	// The legacy parent deletes a grab immediately. Let our process decide
-	// whether the GURPS grab is still held instead.
-	return

@@ -339,8 +339,10 @@
 	mymob.blind.name = " "
 	mymob.blind.screen_loc = "1,1 to 15,15"
 	mymob.blind.layer = 0
+	mymob.blind.alpha = 0
 	mymob.blind.mouse_opacity = 0
-	mymob.blind.plane = -1
+	// The blindness overlay must render above the game world, not behind it.
+	mymob.blind.plane = 0
 
 	mymob.flash = new /obj/screen( null )
 	mymob.flash.icon_state = "blank"
@@ -391,12 +393,9 @@
 			if("i_clothing")
 				S.icon = 'icons/mob/HUD/hud.dmi'
 				S.icon_state = "center"
-			if("o_clothing")
+			if("o_clothing", "id")
 				S.icon = 'icons/mob/HUD/hud.dmi'
-				S.icon_state = "o_clothing"
-			if("id")
-				S.icon = 'icons/mob/HUD/hud.dmi'
-				S.icon_state = "ring"
+				S.icon_state = ""
 			if("r_hand")
 				S.icon = 'icons/mob/HUD/hud.dmi'
 				S.icon_state = "r_hand"

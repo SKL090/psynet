@@ -1077,6 +1077,27 @@
 
 			overlays += image("icon" = limb_icon, "layer" = limb_layer)
 
+	// ===== КУЛЬТИ И КРОВОТЕЧЕНИЕ =====
+	// The bleeding DMI contains standing (_s) and lying (_l) stump states.
+	var/bleeding_dmi = (gender == FEMALE) ? 'icons/mob/human_bleeding_female.dmi' : 'icons/mob/human_bleeding_male.dmi'
+	var/stump_suffix = lying ? "_l" : "_s"
+	var/list/stump_priority = list("l_arm", "r_arm", "l_leg", "r_leg", "l_hand", "r_hand", "l_foot", "r_foot", "head", "groin")
+	for(var/stump_zone in stump_priority)
+		var/datum/organ/external/S = organs[stump_zone]
+		if(!S || !S.destroyed) continue
+		// A missing arm/leg takes priority over its missing hand/foot.
+		if(stump_zone in list("l_hand", "r_hand"))
+			var/parent_arm = (stump_zone == "l_hand") ? "l_arm" : "r_arm"
+			if(organs[parent_arm] && organs[parent_arm]:destroyed) continue
+		if(stump_zone in list("l_foot", "r_foot"))
+			var/parent_leg = (stump_zone == "l_foot") ? "l_leg" : "r_leg"
+			if(organs[parent_leg] && organs[parent_leg]:destroyed) continue
+		var/blood_state = S.gurps_stump_bleeding ? 1 : 0
+		var/image/stump_image = image("icon" = bleeding_dmi, "icon_state" = "[stump_zone][stump_suffix][blood_state]")
+		stump_image.dir = dir
+		stump_image.layer = body_layer + 0.6
+		overlays += stump_image
+
 	// ===== PSYNET UNIFORM =====
 	if(istype(w_uniform, /obj/item/clothing/psynet_uniform))
 		var/obj/item/clothing/psynet_uniform/P = w_uniform
@@ -1719,8 +1740,16 @@
 	else if (gender == FEMALE)
 		g = "f"
 
-	var/icon/eyes_s = new/icon("icon" = 'icons/mob/human_face.dmi', "icon_state" = "eyes_s")
-	var/icon/eyes_l = new/icon("icon" = 'icons/mob/human_face.dmi', "icon_state" = "eyes_l")
+	var/icon/eyes_s
+	var/icon/eyes_l
+	if(gurps_eyes_closed)
+		var/closed_s = (gender == FEMALE) ? "feyes_s" : "eyes_s"
+		var/closed_l = (gender == FEMALE) ? "feyes_l" : "eyes_l"
+		eyes_s = new/icon("icon" = 'icons/mob/human.dmi', "icon_state" = closed_s)
+		eyes_l = new/icon("icon" = 'icons/mob/human.dmi', "icon_state" = closed_l)
+	else
+		eyes_s = new/icon("icon" = 'icons/mob/human_face.dmi', "icon_state" = "eyes_s")
+		eyes_l = new/icon("icon" = 'icons/mob/human_face.dmi', "icon_state" = "eyes_l")
 	eyes_s.Blend(rgb(r_eyes, g_eyes, b_eyes), ICON_ADD)
 	eyes_l.Blend(rgb(r_eyes, g_eyes, b_eyes), ICON_ADD)
 
@@ -1842,6 +1871,7 @@
 		var/state = O.damage_state
 		if(state == "33") state = "30"
 		if(zombie) state = "30"
+		var/damage_dmi = (gender == FEMALE) ? 'icons/mob/dam_female.dmi' : 'icons/mob/dam_human.dmi'
 
 		// Arm/hand sprites are drawn above the base body. Put their wounds above
 		// that layer too, otherwise the damage artwork ends up hidden behind them.
@@ -1850,13 +1880,18 @@
 		if(zone in list("r_arm", "l_arm", "r_hand", "l_hand"))
 			standing_layer = MOB_LAYER + 0.5
 			lying_layer = MOB_LAYER - 0.5
+		// Head wounds must be below hair and headgear, which are added later
+		// on the base body layer in update_clothing().
+		if(zone == "head")
+			standing_layer = MOB_LAYER
+			lying_layer = MOB_LAYER - 1
 
-		var/image/standing_damage = image("icon" = 'icons/mob/dam_human.dmi', "icon_state" = "[zone]_[state]")
+		var/image/standing_damage = image("icon" = damage_dmi, "icon_state" = "[zone]_[state]")
 		standing_damage.dir = dir
 		standing_damage.layer = standing_layer
 		body_standing += standing_damage
 
-		var/image/lying_damage = image("icon" = 'icons/mob/dam_human.dmi', "icon_state" = "[zone]2_[state]")
+		var/image/lying_damage = image("icon" = damage_dmi, "icon_state" = "[zone]2_[state]")
 		lying_damage.layer = lying_layer
 		body_lying += lying_damage
 
