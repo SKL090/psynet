@@ -680,6 +680,21 @@
 	if(owner && ishuman(owner) && istype(src,/datum/organ/external/head) && brute >= 10 && !destroyed)
 		var/mob/living/carbon/human/H = owner
 		var/datum/organ/external/head/HD = src
+
+		// GURPS-style concussion symptoms: an impact anywhere on the head
+		// can briefly disturb balance and vision, even when the brain is not
+		// penetrated. The existing life loop decreases both values over time.
+		var/head_impact = brute + burn + slash
+		if(head_impact >= 5 && (dmg_type == DAMAGE_CRUSH || dmg_type == DAMAGE_CUT || dmg_type == DAMAGE_PIERCE))
+			var/concussion_chance = min(85, 15 + round(head_impact * 3))
+			if(prob(concussion_chance))
+				var/concussion_duration = min(30, 8 + round(head_impact / 2))
+				H.dizziness = max(H.dizziness, concussion_duration)
+				H.eye_blurry = max(H.eye_blurry, round(concussion_duration / 2))
+				if(head_impact >= 15)
+					H.confused = max(H.confused, round(concussion_duration / 2))
+				H << "<span class='warning'>Удар в голову! На несколько секунд кружится голова и мутнеет зрение.</span>"
+
 		var/brain_chance = 0
 		if(dmg_type == DAMAGE_PIERCE) brain_chance = brute * 2.0
 		else if(dmg_type == DAMAGE_CRUSH) brain_chance = brute * 1.0

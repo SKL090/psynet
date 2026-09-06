@@ -1,13 +1,13 @@
 // ============================
-// gurps_combat.dm - НОВАЯ БОЕВКА (LIFEWEB СТИЛЬ) ФИНАЛ
+// gurps_combat.dm - пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (LIFEWEB пїЅпїЅпїЅпїЅпїЅ) пїЅпїЅпїЅпїЅпїЅ
 // ============================
 
-// Типы урона
+// пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 #define DAMAGE_CUT    1
 #define DAMAGE_PIERCE 2
 #define DAMAGE_CRUSH  3
 
-// ---------- ВСПОМОГАТЕЛЬНЫЕ ПРОКИ ДЛЯ ЗОН ----------
+// ---------- пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ ----------
 
 /proc/gurps_normalize_zone(zone)
 	if(!zone) return "chest"
@@ -60,10 +60,10 @@
 			data["dmg_mult"] = 1.5
 	return data
 
-// ---------- БОЕВОЙ РЕЖИМ ----------
+// ---------- пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ ----------
 /mob/living/carbon/human
 	var/gurps_combat_mode = FALSE
-	// Новый человек начинает с подготовленным уклонением.
+	// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 	var/gurps_defense_active = TRUE
 	var/obj/screen/gurps_defense_icon = null
 	// Number of parries made during the current GURPS one-second turn.
@@ -71,13 +71,13 @@
 	var/gurps_parry_count = 0
 
 /mob/living/carbon/human/verb/gurps_toggle_combat_mode()
-	set name = "Боевой режим"
+	set name = "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ"
 	set category = "GURPS"
 	gurps_combat_mode = !gurps_combat_mode
 	if(gurps_combat_mode)
-		src << "<span class='danger'><B>Боевой режим! +1 к атаке и защите.</B></span>"
+		src << "<span class='danger'><B>пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ! +1 пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.</B></span>"
 	else
-		src << "<span class='notice'>Вы вышли из боевого режима.</span>"
+		src << "<span class='notice'>пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.</span>"
 
 /mob/living/carbon/human/proc/gurps_combat_bonus()
 	if(gurps_combat_mode) return 1
@@ -90,13 +90,13 @@
 				return -1
 	return 0
 
-// ---------- АКТИВНАЯ ЗАЩИТА ----------
+// ---------- пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ ----------
 /mob/living/carbon/human/proc/gurps_update_defense_hud()
 	if(!gurps_defense_icon) return
 	gurps_defense_icon.icon_state = (gurps_defense_mode == "dodge") ? "dodge1" : "dodge0"
 
 /mob/living/carbon/human/proc/gurps_prepare_defense(mode)
-	// Выбранный режим уже постоянно активен: повторный клик ничего не делает.
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 	if((mode == "dodge" && gurps_defense_mode == "dodge") || (mode == "parry" && gurps_defense_mode != "dodge"))
 		return FALSE
 
@@ -104,23 +104,23 @@
 		gurps_defense_mode = "dodge"
 		gurps_defense_active = TRUE
 		gurps_update_defense_hud()
-		src << "<span class='notice'>Вы готовитесь уклониться!</span>"
-		src.visible_message("<span class='warning'>[src] готовится к активной защите!</span>")
+		src << "<span class='notice'>пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!</span>"
+		src.visible_message("<span class='warning'>[src] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ!</span>")
 		return TRUE
 	var/obj/item/weapon/WPN = (hand ? l_hand : r_hand)
 	if(!WPN)
 		gurps_defense_mode = "parry_fist"
 		gurps_defense_active = TRUE
 		gurps_update_defense_hud()
-		src << "<span class='notice'>Вы готовитесь парировать руками.</span>"
+		src << "<span class='notice'>пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.</span>"
 		return TRUE
 	if(WPN.force < 5)
-		src << "<span class='warning'>Это оружие слишком лёгкое для парирования!</span>"
+		src << "<span class='warning'>пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!</span>"
 		return FALSE
 	gurps_defense_mode = "parry"
 	gurps_defense_active = TRUE
 	gurps_update_defense_hud()
-	src << "<span class='notice'>Вы готовитесь парировать [WPN]!</span>"
+	src << "<span class='notice'>пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ [WPN]!</span>"
 	return TRUE
 
 /obj/screen/gurps_defense
@@ -190,10 +190,10 @@
 				var/obj/item/weapon/gurps/GW = WPN
 				playsound(src.loc, GW.get_parry_sound(), 60, 1)
 			else if(WPN) playsound(src.loc, 'sound/weapons/parry.ogg', 50, 1)
-		src << "<span class='notice'>Вы успешно защитились!</span>"
+		src << "<span class='notice'>пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!</span>"
 	return result
 
-// ---------- ОТБРАСЫВАНИЕ ----------
+// ---------- пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ----------
 /proc/gurps_knockback(mob/living/carbon/human/target, mob/living/carbon/human/attacker, damage, is_crit)
 	if(!target || !attacker) return 0
 	if(target.stat == 2) return 0
@@ -243,7 +243,44 @@
 
 	return 0
 
-// ---------- ПОЛУЧЕНИЕ ЗОНЫ ----------
+// ---------- пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ ----------
+// Rear attacks: a hit to the nape may stun, while a hit to the back of
+// the torso can injure any internal organ protected by the torso.
+/proc/gurps_apply_rear_hit(mob/living/carbon/human/attacker, mob/living/carbon/human/target, zone, damage, dmg_type)
+	if(!attacker || !target || !gurps_is_behind_fov(target, attacker) || damage <= 0) return
+	if(zone == "head")
+		var/nape_chance = min(80, 20 + damage * 2)
+		if(dmg_type == DAMAGE_CRUSH) nape_chance = min(90, nape_chance + 15)
+		if(prob(nape_chance))
+			target.stunned = max(target.stunned, min(8, 2 + round(damage / 8)))
+			target.confused = max(target.confused, 3)
+			target.visible_message("<span class='danger'><B>[target] пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ!</B></span>", "<span class='danger'><B>пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ! пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.</B></span>")
+		return
+	if(!(zone in list("chest", "vitals", "groin"))) return
+	var/list/rear_organs = list()
+	var/datum/organ/external/chest/C = target.organs["chest"]
+	var/datum/organ/external/vitals/V = target.organs["vitals"]
+	if(C)
+		if(C.heart) rear_organs += C.heart
+		if(C.lungs) rear_organs += C.lungs
+	if(V)
+		if(V.liver) rear_organs += V.liver
+		if(V.kidney_left) rear_organs += V.kidney_left
+		if(V.kidney_right) rear_organs += V.kidney_right
+		if(V.stomach) rear_organs += V.stomach
+		if(V.intestines) rear_organs += V.intestines
+	if(!rear_organs.len) return
+	var/organ_chance = min(75, 15 + damage * (dmg_type == DAMAGE_PIERCE ? 3 : 1))
+	if(!prob(organ_chance)) return
+	var/datum/organ/internal/O = pick(rear_organs)
+	var/internal_damage = max(1, round(damage * (dmg_type == DAMAGE_PIERCE ? 0.8 : 0.35)))
+	O.health = max(0, O.health - internal_damage)
+	if(O.health <= 0) O.status = "destroyed"
+	else if(O.health < 25) O.status = "ruptured"
+	else if(O.health < 50) O.status = "damaged"
+	else if(O.health < 75) O.status = "bruised"
+	target.pain(O.name, max(20, internal_damage * 2), 1)
+
 /proc/gurps_get_target_zone(mob/living/carbon/human/attacker)
 	if(!attacker)
 		return gurps_roll_hit_zone()
@@ -260,7 +297,7 @@
 
 	return gurps_roll_hit_zone()
 
-// ---------- ОПРЕДЕЛЕНИЕ ТИПА УРОНА ----------
+// ---------- пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ ----------
 /proc/gurps_get_weapon_dmg_type(obj/item/weapon/W)
 	if(!W) return DAMAGE_CRUSH
 
@@ -270,37 +307,37 @@
 
 	var/wname = lowertext(W.name)
 
-	if(findtext(wname, "screwdriver") || findtext(wname, "отвёртка") || findtext(wname, "отвертка"))
+	if(findtext(wname, "screwdriver") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ"))
 		return DAMAGE_PIERCE
-	if(findtext(wname, "spear") || findtext(wname, "копьё") || findtext(wname, "копье"))
+	if(findtext(wname, "spear") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅ") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅ"))
 		return DAMAGE_PIERCE
-	if(findtext(wname, "stiletto") || findtext(wname, "стилет"))
+	if(findtext(wname, "stiletto") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅ"))
 		return DAMAGE_PIERCE
 
-	if(findtext(wname, "knife") || findtext(wname, "нож"))
+	if(findtext(wname, "knife") || findtext(wname, "пїЅпїЅпїЅ"))
 		return DAMAGE_CUT
-	if(findtext(wname, "scalpel") || findtext(wname, "скальпель"))
+	if(findtext(wname, "scalpel") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ"))
 		return DAMAGE_CUT
-	if(findtext(wname, "saw") || findtext(wname, "пила"))
+	if(findtext(wname, "saw") || findtext(wname, "пїЅпїЅпїЅпїЅ"))
 		return DAMAGE_CUT
-	if(findtext(wname, "hatchet") || findtext(wname, "топор") || findtext(wname, "axe"))
+	if(findtext(wname, "hatchet") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅ") || findtext(wname, "axe"))
 		return DAMAGE_CUT
-	if(findtext(wname, "sword") || findtext(wname, "меч") || findtext(wname, "клинок") || findtext(wname, "blade"))
+	if(findtext(wname, "sword") || findtext(wname, "пїЅпїЅпїЅ") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅ") || findtext(wname, "blade"))
 		return DAMAGE_CUT
-	if(findtext(wname, "wirecutter") || findtext(wname, "кусачки"))
+	if(findtext(wname, "wirecutter") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ"))
 		return DAMAGE_CUT
-	if(findtext(wname, "circular") || findtext(wname, "циркуляр"))
+	if(findtext(wname, "circular") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ"))
 		return DAMAGE_CUT
-	if(findtext(wname, "shard") || findtext(wname, "осколок") || findtext(wname, "стекло"))
+	if(findtext(wname, "shard") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅ"))
 		return DAMAGE_CUT
 
-	if(findtext(wname, "hammer") || findtext(wname, "молот") || findtext(wname, "кувалда") || findtext(wname, "sledge"))
+	if(findtext(wname, "hammer") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅ") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ") || findtext(wname, "sledge"))
 		return DAMAGE_CRUSH
-	if(findtext(wname, "crowbar") || findtext(wname, "лом"))
+	if(findtext(wname, "crowbar") || findtext(wname, "пїЅпїЅпїЅ"))
 		return DAMAGE_CRUSH
-	if(findtext(wname, "wrench") || findtext(wname, "ключ"))
+	if(findtext(wname, "wrench") || findtext(wname, "пїЅпїЅпїЅпїЅ"))
 		return DAMAGE_CRUSH
-	if(findtext(wname, "club") || findtext(wname, "дубина") || findtext(wname, "палица") || findtext(wname, "дубинка"))
+	if(findtext(wname, "club") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅ") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅ") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ"))
 		return DAMAGE_CRUSH
 
 	if(W.force >= 12)
@@ -316,20 +353,20 @@
 		return (GW.get_damage_type() == DAMAGE_CUT)
 
 	var/wname = lowertext(W.name)
-	if(findtext(wname, "knife") || findtext(wname, "нож")) return 1
-	if(findtext(wname, "scalpel") || findtext(wname, "скальпель")) return 1
-	if(findtext(wname, "saw") || findtext(wname, "пила")) return 1
-	if(findtext(wname, "hatchet") || findtext(wname, "топор") || findtext(wname, "axe")) return 1
-	if(findtext(wname, "sword") || findtext(wname, "меч") || findtext(wname, "клинок") || findtext(wname, "blade")) return 1
-	if(findtext(wname, "wirecutter") || findtext(wname, "кусачки")) return 1
-	if(findtext(wname, "circular") || findtext(wname, "циркуляр")) return 1
-	if(findtext(wname, "shard") || findtext(wname, "осколок") || findtext(wname, "стекло")) return 1
+	if(findtext(wname, "knife") || findtext(wname, "пїЅпїЅпїЅ")) return 1
+	if(findtext(wname, "scalpel") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ")) return 1
+	if(findtext(wname, "saw") || findtext(wname, "пїЅпїЅпїЅпїЅ")) return 1
+	if(findtext(wname, "hatchet") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅ") || findtext(wname, "axe")) return 1
+	if(findtext(wname, "sword") || findtext(wname, "пїЅпїЅпїЅ") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅ") || findtext(wname, "blade")) return 1
+	if(findtext(wname, "wirecutter") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ")) return 1
+	if(findtext(wname, "circular") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ")) return 1
+	if(findtext(wname, "shard") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ") || findtext(wname, "пїЅпїЅпїЅпїЅпїЅпїЅ")) return 1
 
 	if(W.force >= 15) return 1
 
 	return 0
 
-// ---------- УДАР РУКОЙ ----------
+// ---------- пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ ----------
 /proc/gurps_target_has_hard_armor(mob/living/carbon/human/H, zone)
 	if(!H) return FALSE
 	zone = gurps_normalize_zone(zone)
@@ -381,7 +418,7 @@
 			attacker.updatehealth()
 		if(prob(25))
 			attacker.weakened = max(attacker.weakened,2)
-			attacker.visible_message("<span class='danger'>[attacker] теряет равновесие!</span>")
+			attacker.visible_message("<span class='danger'>[attacker] пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!</span>")
 		return
 
 	if(!attack["success"])
@@ -448,6 +485,7 @@
 	var/was_tendon = E.tendon_damaged
 
 	E.take_damage(damage, 0, 0, DAMAGE_CRUSH, is_crit)
+	gurps_apply_rear_hit(attacker, target, zone, damage, DAMAGE_CRUSH)
 
 	var/effect_msg = gurps_determine_effect(E, was_broken, was_artery, was_tendon, is_crit)
 
@@ -460,7 +498,7 @@
 	target.UpdateDamageIcon()
 	target.updatehealth()
 
-// ---------- УДАР ОРУЖИЕМ ----------
+// ---------- пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ ----------
 /proc/gurps_weapon_attack(mob/living/carbon/human/attacker, mob/living/carbon/human/target, obj/item/weapon, def_zone)
 	if(!istype(attacker) || !istype(target)) return
 	if(!weapon) return
@@ -483,7 +521,7 @@
 	var/skill = attacker.gurps_get_skill(skill_name)
 	var/finger_penalty = attacker.gurps_hand_finger_penalty()
 	if(finger_penalty >= 4)
-		attacker << "<span class='warning'>В этой руке слишком мало пальцев, чтобы удержать оружие.</span>"
+		attacker << "<span class='warning'>пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.</span>"
 		attacker.drop_item()
 		return
 	skill -= finger_penalty
@@ -526,7 +564,7 @@
 			gurps_play_hit_sound(attacker, gurps_get_punch_sound(), 60)
 			gurps_play_hit_sound(attacker, gurps_get_miss_sound(), 50)
 		if(prob(40))
-			attacker.visible_message("<span class='danger'>[attacker] роняет [weapon]!</span>")
+			attacker.visible_message("<span class='danger'>[attacker] пїЅпїЅпїЅпїЅпїЅпїЅ [weapon]!</span>")
 			attacker.drop_item()
 		if(prob(30))
 			var/datum/organ/external/E = attacker.organs[pick("l_arm","r_arm")]
@@ -535,7 +573,7 @@
 			attacker.updatehealth()
 		if(prob(20))
 			attacker.weakened = max(attacker.weakened,3)
-			attacker.visible_message("<span class='danger'>[attacker] теряет равновесие!</span>")
+			attacker.visible_message("<span class='danger'>[attacker] пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!</span>")
 		return
 
 	if(!attack["success"])
@@ -579,8 +617,8 @@
 		return
 
 	if(!ignore_defense && !(target.lying || target.weakened) && target.gurps_defense_active)
-		// Голыми руками можно парировать только безоружную атаку. Против ножа
-		// и любого вооружённого удара такой бросок защиты не совершается.
+		// пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+		// пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 		if(target.gurps_defense_mode != "parry_fist")
 			var/list/defense = target.gurps_defense_roll(skill)
 			if(defense["success"])
@@ -621,6 +659,7 @@
 	var/was_tendon = E.tendon_damaged
 
 	E.take_damage(damage, 0, is_slash, dmg_type, is_crit)
+	gurps_apply_rear_hit(attacker, target, def_zone, damage, dmg_type)
 
 	if(weapon && istype(weapon, /obj/item/weapon/gurps))
 		var/obj/item/weapon/gurps/GW = weapon
@@ -640,7 +679,7 @@
 	target.UpdateDamageIcon()
 	target.updatehealth()
 
-// ---------- ЗОНЫ ПОПАДАНИЯ ----------
+// ---------- пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ----------
 /proc/gurps_roll_hit_zone()
 	switch(gurps_roll_3d6())
 		if(3) return "head"
