@@ -1,5 +1,5 @@
 // ============================
-// gurps_core.dm — ЯДРО GURPS (ВЫНОСЛИВОСТЬ ОТ ЗДОРОВЬЯ)
+// gurps_core.dm вЂ” РЇР”Р Рћ GURPS (Р’Р«РќРћРЎР›РР’РћРЎРўР¬ РћРў Р—Р”РћР РћР’Р¬РЇ)
 // ============================
 
 /mob/living/carbon/human
@@ -35,7 +35,7 @@
 
 /mob/living/carbon/human/New()
 	..()
-	// GURPS-переменные инициализируются только если их ещё нет
+	// GURPS-РїРµСЂРµРјРµРЅРЅС‹Рµ РёРЅРёС†РёР°Р»РёР·РёСЂСѓСЋС‚СЃСЏ С‚РѕР»СЊРєРѕ РµСЃР»Рё РёС… РµС‰С‘ РЅРµС‚
 	if(!gurps_strength) gurps_strength = 10
 	if(!gurps_dexterity) gurps_dexterity = 10
 	if(!gurps_health) gurps_health = 10
@@ -63,7 +63,7 @@
 		gurps_endurance -= amount
 		return TRUE
 
-	src << "<span class='warning'>Вы слишком устали!</span>"
+	src << "<span class='warning'>Р’С‹ СЃР»РёС€РєРѕРј СѓСЃС‚Р°Р»Рё!</span>"
 	if(prob(15))
 		weakened = max(weakened, 1)
 	return FALSE
@@ -185,12 +185,12 @@
 /mob/living/carbon/human/proc/gurps_improve_skill(skill_name, amount)
 	if(gurps_combat_skills.Find(skill_name))
 		gurps_combat_skills[skill_name] = min(6, gurps_combat_skills[skill_name] + amount)
-		src << "<span class='notice'>Ваш навык [skill_name] улучшился! ([gurps_combat_skills[skill_name]]/6)</span>"
+		src << "<span class='notice'>Р’Р°С€ РЅР°РІС‹Рє [skill_name] СѓР»СѓС‡С€РёР»СЃСЏ! ([gurps_combat_skills[skill_name]]/6)</span>"
 		return TRUE
 
 	if(gurps_civil_skills.Find(skill_name))
 		gurps_civil_skills[skill_name] = min(6, gurps_civil_skills[skill_name] + amount)
-		src << "<span class='notice'>Ваш навык [skill_name] улучшился! ([gurps_civil_skills[skill_name]]/6)</span>"
+		src << "<span class='notice'>Р’Р°С€ РЅР°РІС‹Рє [skill_name] СѓР»СѓС‡С€РёР»СЃСЏ! ([gurps_civil_skills[skill_name]]/6)</span>"
 		return TRUE
 
 	return FALSE
@@ -202,47 +202,47 @@
 		var/obj/item/weapon/gurps/GW = W
 
 		if(gurps_strength < GW.gurps_min_strength)
-			src << "<span class='warning'>Вам не хватает силы для [GW]! (Нужно: [GW.gurps_min_strength], у вас: [gurps_strength])</span>"
+			src << "<span class='warning'>Р’Р°Рј РЅРµ С…РІР°С‚Р°РµС‚ СЃРёР»С‹ РґР»СЏ [GW]! (РќСѓР¶РЅРѕ: [GW.gurps_min_strength], Сѓ РІР°СЃ: [gurps_strength])</span>"
 			return FALSE
 
 		if(GW.gurps_twohanded && (l_hand && r_hand))
-			src << "<span class='warning'>[GW] требует двух рук!</span>"
+			src << "<span class='warning'>[GW] С‚СЂРµР±СѓРµС‚ РґРІСѓС… СЂСѓРє!</span>"
 			return FALSE
 
 	return TRUE
 
-// ===== АДМИН: ИЗМЕНИТЬ СТАТЫ =====
+// ===== РђР”РњРРќ: РР—РњР•РќРРўР¬ РЎРўРђРўР« =====
 /obj/admins/proc/gurps_edit_player(mob/living/carbon/human/H)
 	if(!istype(H)) return
 
-	var/choice = input("Статы [H.name]:\nST=[H.gurps_strength] DX=[H.gurps_dexterity] HT=[H.gurps_health] IQ=[H.gurps_intelligence]\nEN=[H.gurps_endurance]/[H.gurps_endurance_max]", "GURPS") as null|anything in list(
-		"Сила (ST)", "Ловкость (DX)", "Здоровье (HT)", "Интеллект (IQ)", "Восприятие (PR)",
-		"Навыки", "Случайные", "Сбросить всё", "Выход"
+	var/choice = input("РЎС‚Р°С‚С‹ [H.name]:\nST=[H.gurps_strength] DX=[H.gurps_dexterity] HT=[H.gurps_health] IQ=[H.gurps_intelligence]\nEN=[H.gurps_endurance]/[H.gurps_endurance_max]", "GURPS") as null|anything in list(
+		"РЎРёР»Р° (ST)", "Р›РѕРІРєРѕСЃС‚СЊ (DX)", "Р—РґРѕСЂРѕРІСЊРµ (HT)", "РРЅС‚РµР»Р»РµРєС‚ (IQ)", "Р’РѕСЃРїСЂРёСЏС‚РёРµ (PR)",
+		"РќР°РІС‹РєРё", "РЎР»СѓС‡Р°Р№РЅС‹Рµ", "РЎР±СЂРѕСЃРёС‚СЊ РІСЃС‘", "Р’С‹С…РѕРґ"
 	)
-	if(!choice || choice == "Выход") return
+	if(!choice || choice == "Р’С‹С…РѕРґ") return
 
 	switch(choice)
-		if("Сила (ST)")
-			H.gurps_strength = input("Сила:", "GURPS", H.gurps_strength) as num
+		if("РЎРёР»Р° (ST)")
+			H.gurps_strength = input("РЎРёР»Р°:", "GURPS", H.gurps_strength) as num
 			H.gurps_strength = max(1, round(H.gurps_strength))
-		if("Ловкость (DX)")
-			H.gurps_dexterity = input("Ловкость:", "GURPS", H.gurps_dexterity) as num
+		if("Р›РѕРІРєРѕСЃС‚СЊ (DX)")
+			H.gurps_dexterity = input("Р›РѕРІРєРѕСЃС‚СЊ:", "GURPS", H.gurps_dexterity) as num
 			H.gurps_dexterity = max(1, round(H.gurps_dexterity))
-		if("Здоровье (HT)")
-			H.gurps_health = input("Здоровье:", "GURPS", H.gurps_health) as num
+		if("Р—РґРѕСЂРѕРІСЊРµ (HT)")
+			H.gurps_health = input("Р—РґРѕСЂРѕРІСЊРµ:", "GURPS", H.gurps_health) as num
 			H.gurps_health = max(1, round(H.gurps_health))
 			H.gurps_update_endurance_max()
-		if("Интеллект (IQ)")
-			H.gurps_intelligence = input("Интеллект:", "GURPS", H.gurps_intelligence) as num
+		if("РРЅС‚РµР»Р»РµРєС‚ (IQ)")
+			H.gurps_intelligence = input("РРЅС‚РµР»Р»РµРєС‚:", "GURPS", H.gurps_intelligence) as num
 			H.gurps_intelligence = max(1, round(H.gurps_intelligence))
 			H.gurps_perception = H.gurps_intelligence
-		if("Восприятие (PR)")
-			H.gurps_perception = input("Восприятие:", "GURPS", H.gurps_perception) as num
+		if("Р’РѕСЃРїСЂРёСЏС‚РёРµ (PR)")
+			H.gurps_perception = input("Р’РѕСЃРїСЂРёСЏС‚РёРµ:", "GURPS", H.gurps_perception) as num
 			H.gurps_perception = max(1, round(H.gurps_perception))
-		if("Навыки")
+		if("РќР°РІС‹РєРё")
 			gurps_edit_skills(H)
 			return
-		if("Случайные")
+		if("РЎР»СѓС‡Р°Р№РЅС‹Рµ")
 			H.gurps_strength = rand(8, 13)
 			H.gurps_dexterity = rand(8, 13)
 			H.gurps_health = rand(8, 13)
@@ -250,7 +250,7 @@
 			H.gurps_update_endurance_max()
 			H.gurps_endurance = H.gurps_endurance_max
 			H.gurps_perception = H.gurps_intelligence
-		if("Сбросить всё")
+		if("РЎР±СЂРѕСЃРёС‚СЊ РІСЃС‘")
 			H.gurps_strength = 10
 			H.gurps_dexterity = 10
 			H.gurps_health = 10
@@ -263,30 +263,30 @@
 			for(var/s in H.gurps_civil_skills)
 				H.gurps_civil_skills[s] = 0
 
-	message_admins("[key_name(usr)] изменил GURPS статы [key_name(H)]: ST=[H.gurps_strength] DX=[H.gurps_dexterity] HT=[H.gurps_health] IQ=[H.gurps_intelligence] EN=[H.gurps_endurance_max]")
+	message_admins("[key_name(usr)] РёР·РјРµРЅРёР» GURPS СЃС‚Р°С‚С‹ [key_name(H)]: ST=[H.gurps_strength] DX=[H.gurps_dexterity] HT=[H.gurps_health] IQ=[H.gurps_intelligence] EN=[H.gurps_endurance_max]")
 	gurps_edit_player(H)
 
-// ===== АДМИН: ИЗМЕНИТЬ НАВЫКИ =====
+// ===== РђР”РњРРќ: РР—РњР•РќРРўР¬ РќРђР’Р«РљР =====
 /obj/admins/proc/gurps_edit_skills(mob/living/carbon/human/H)
 	if(!istype(H)) return
 
-	var/choice = input("Категория навыков [H.name]:", "GURPS Skills") as null|anything in list("Боевые", "Гражданские", "Выход")
-	if(!choice || choice == "Выход") return
+	var/choice = input("РљР°С‚РµРіРѕСЂРёСЏ РЅР°РІС‹РєРѕРІ [H.name]:", "GURPS Skills") as null|anything in list("Р‘РѕРµРІС‹Рµ", "Р“СЂР°Р¶РґР°РЅСЃРєРёРµ", "Р’С‹С…РѕРґ")
+	if(!choice || choice == "Р’С‹С…РѕРґ") return
 
-	var/list/skill_list = (choice == "Боевые") ? H.gurps_combat_skills : H.gurps_civil_skills
+	var/list/skill_list = (choice == "Р‘РѕРµРІС‹Рµ") ? H.gurps_combat_skills : H.gurps_civil_skills
 	var/list/skill_names = list()
 	for(var/s in skill_list) skill_names += "[s] ([skill_list[s]]/6)"
-	skill_names += "Выход"
+	skill_names += "Р’С‹С…РѕРґ"
 
-	var/skill_choice = input("Навык:", "GURPS Skills") as null|anything in skill_names
-	if(!skill_choice || skill_choice == "Выход") return
+	var/skill_choice = input("РќР°РІС‹Рє:", "GURPS Skills") as null|anything in skill_names
+	if(!skill_choice || skill_choice == "Р’С‹С…РѕРґ") return
 
 	var/skill_name = copytext(skill_choice, 1, findtext(skill_choice, " ("))
 	var/current = skill_list[skill_name]
-	var/new_val = input("[skill_name]: текущий [current]/6", "GURPS Skills", current) as num
+	var/new_val = input("[skill_name]: С‚РµРєСѓС‰РёР№ [current]/6", "GURPS Skills", current) as num
 	if(isnull(new_val)) return
 	new_val = max(0, min(6, round(new_val)))
 	skill_list[skill_name] = new_val
 
-	message_admins("[key_name(usr)] изменил навык [skill_name] игрока [key_name(H)]: [current] -> [new_val]")
+	message_admins("[key_name(usr)] РёР·РјРµРЅРёР» РЅР°РІС‹Рє [skill_name] РёРіСЂРѕРєР° [key_name(H)]: [current] -> [new_val]")
 	gurps_edit_skills(H)

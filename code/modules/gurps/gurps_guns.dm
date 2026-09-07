@@ -1,13 +1,13 @@
 // ============================
-// gurps_guns.dm — GURPS ДАЛЬНИЙ БОЙ (РЕВОЛЬВЕР + ПИСТОЛЕТ)
+// gurps_guns.dm вЂ” GURPS Р”РђР›Р¬РќРР™ Р‘РћР™ (Р Р•Р’РћР›Р¬Р’Р•Р  + РџРРЎРўРћР›Р•Рў)
 // ============================
 
 // ============================================
-// БАЗОВЫЙ КЛАСС GURPS-ОРУЖИЯ ДАЛЬНЕГО БОЯ
+// Р‘РђР—РћР’Р«Р™ РљР›РђРЎРЎ GURPS-РћР РЈР–РРЇ Р”РђР›Р¬РќР•Р“Рћ Р‘РћРЇ
 // ============================================
 /obj/item/weapon/gun/gurps
 	name = "gurps firearm"
-	desc = "Огнестрельное оружие для GURPS-боёвки."
+	desc = "РћРіРЅРµСЃС‚СЂРµР»СЊРЅРѕРµ РѕСЂСѓР¶РёРµ РґР»СЏ GURPS-Р±РѕС‘РІРєРё."
 	icon = 'icons/obj/weapons/gun.dmi'
 	icon_state = "revolver2"
 	force = 5
@@ -47,10 +47,10 @@
 	cylinder_open = !cylinder_open
 	if(cylinder_open)
 		playsound(user, 'sound/weapons2/revolver_open.ogg', 50, 1)
-		user << "\blue Вы открываете барабан [src]."
+		user << "\blue Р’С‹ РѕС‚РєСЂС‹РІР°РµС‚Рµ Р±Р°СЂР°Р±Р°РЅ [src]."
 	else
 		playsound(user, 'sound/weapons2/revolver_close.ogg', 50, 1)
-		user << "\blue Вы закрываете барабан [src]."
+		user << "\blue Р’С‹ Р·Р°РєСЂС‹РІР°РµС‚Рµ Р±Р°СЂР°Р±Р°РЅ [src]."
 	gurps_update_icon()
 
 /obj/item/weapon/gun/gurps/proc/eject_all(mob/user)
@@ -71,19 +71,19 @@
 		B.ammo_update_icon()
 
 	user.visible_message(
-		"<span class='warning'>[user] вытряхивает содержимое барабана [src]!</span>",
-		"<span class='notice'>Вы вытряхиваете [current_ammo] патронов и [fired_ammo] гильз из барабана.</span>"
+		"<span class='warning'>[user] РІС‹С‚СЂСЏС…РёРІР°РµС‚ СЃРѕРґРµСЂР¶РёРјРѕРµ Р±Р°СЂР°Р±Р°РЅР° [src]!</span>",
+		"<span class='notice'>Р’С‹ РІС‹С‚СЂСЏС…РёРІР°РµС‚Рµ [current_ammo] РїР°С‚СЂРѕРЅРѕРІ Рё [fired_ammo] РіРёР»СЊР· РёР· Р±Р°СЂР°Р±Р°РЅР°.</span>"
 	)
 	current_ammo = 0
 	fired_ammo = 0
 	gurps_update_icon()
 
 // ============================================
-// ПАТРОНЫ
+// РџРђРўР РћРќР«
 // ============================================
 /obj/item/weapon/ammo/gurps
 	name = "gurps ammo"
-	desc = "Патрон для GURPS-оружия."
+	desc = "РџР°С‚СЂРѕРЅ РґР»СЏ GURPS-РѕСЂСѓР¶РёСЏ."
 	icon = 'icons/obj/weapons/newammo.dmi'
 	icon_state = "n1"
 	w_class = 1.0
@@ -108,14 +108,14 @@
 			if(in_hand && other)
 				if(in_hand.amount + other.amount <= 15)
 					in_hand.amount += other.amount
-					user << "\blue Вы объединили патроны. Теперь у вас [in_hand.amount] шт."
+					user << "\blue Р’С‹ РѕР±СЉРµРґРёРЅРёР»Рё РїР°С‚СЂРѕРЅС‹. РўРµРїРµСЂСЊ Сѓ РІР°СЃ [in_hand.amount] С€С‚."
 					del(other)
 					in_hand.ammo_update_icon()
 				else
 					var/overflow = (in_hand.amount + other.amount) - 15
 					in_hand.amount = 15
 					other.amount = overflow
-					user << "\blue Вы объединили патроны. [overflow] шт не поместилось."
+					user << "\blue Р’С‹ РѕР±СЉРµРґРёРЅРёР»Рё РїР°С‚СЂРѕРЅС‹. [overflow] С€С‚ РЅРµ РїРѕРјРµСЃС‚РёР»РѕСЃСЊ."
 					in_hand.ammo_update_icon()
 					other.ammo_update_icon()
 				return
@@ -147,16 +147,16 @@
 	..()
 
 /obj/item/weapon/ammo/gurps/revolver
-	name = "патрон .357"
-	desc = "Патрон для револьвера .357 калибра."
+	name = "РїР°С‚СЂРѕРЅ .357"
+	desc = "РџР°С‚СЂРѕРЅ РґР»СЏ СЂРµРІРѕР»СЊРІРµСЂР° .357 РєР°Р»РёР±СЂР°."
 	icon_state = "n1"
 
 // ============================================
-// ГИЛЬЗА (ОБЩАЯ ДЛЯ ВСЕХ ПУШЕК)
+// Р“РР›Р¬Р—Рђ (РћР‘Р©РђРЇ Р”Р›РЇ Р’РЎР•РҐ РџРЈРЁР•Рљ)
 // ============================================
 /obj/item/weapon/ammo/gurps/brass
-	name = "гильза"
-	desc = "Пустая стреляная гильза."
+	name = "РіРёР»СЊР·Р°"
+	desc = "РџСѓСЃС‚Р°СЏ СЃС‚СЂРµР»СЏРЅР°СЏ РіРёР»СЊР·Р°."
 	icon = 'icons/obj/weapons/ammo.dmi'
 	icon_state = "b-casing"
 	w_class = 1.0
@@ -169,11 +169,11 @@
 	dir = pick(NORTH, SOUTH, EAST, WEST)
 
 // ============================================
-// РЕВОЛЬВЕР
+// Р Р•Р’РћР›Р¬Р’Р•Р 
 // ============================================
 /obj/item/weapon/gun/gurps/revolver
 	name = "Harat - 86"
-	desc = "Шестизарядный револьвер .357 калибра. Надёжное оружие."
+	desc = "РЁРµСЃС‚РёР·Р°СЂСЏРґРЅС‹Р№ СЂРµРІРѕР»СЊРІРµСЂ .357 РєР°Р»РёР±СЂР°. РќР°РґС‘Р¶РЅРѕРµ РѕСЂСѓР¶РёРµ."
 	icon_state = "revolver2"
 	icon_state_closed = "revolver2"
 	gurps_skill = "ranged"
@@ -190,15 +190,15 @@
 /obj/item/weapon/gun/gurps/revolver/attackby(obj/item/weapon/ammo/gurps/A, mob/user)
 	if(istype(A, /obj/item/weapon/ammo/gurps/revolver))
 		if(!cylinder_open)
-			user << "\red Барабан закрыт! Откройте его сначала."
+			user << "\red Р‘Р°СЂР°Р±Р°РЅ Р·Р°РєСЂС‹С‚! РћС‚РєСЂРѕР№С‚Рµ РµРіРѕ СЃРЅР°С‡Р°Р»Р°."
 			return
 
 		if(current_ammo >= max_ammo)
-			user << "\blue Револьвер уже полностью заряжен!"
+			user << "\blue Р РµРІРѕР»СЊРІРµСЂ СѓР¶Рµ РїРѕР»РЅРѕСЃС‚СЊСЋ Р·Р°СЂСЏР¶РµРЅ!"
 			return
 
 		current_ammo++
-		user << "\blue Вы заряжаете один патрон в барабан. ([current_ammo]/[max_ammo])"
+		user << "\blue Р’С‹ Р·Р°СЂСЏР¶Р°РµС‚Рµ РѕРґРёРЅ РїР°С‚СЂРѕРЅ РІ Р±Р°СЂР°Р±Р°РЅ. ([current_ammo]/[max_ammo])"
 		playsound(user, pick('sound/weapons2/revolver_load1.ogg','sound/weapons2/revolver_load2.ogg'), 40, 1)
 
 		if(A.amount > 1)
@@ -215,10 +215,10 @@
 	cylinder_open = !cylinder_open
 	if(cylinder_open)
 		playsound(user, 'sound/weapons2/revolver_open.ogg', 50, 1)
-		user << "\blue Вы открываете барабан [src]."
+		user << "\blue Р’С‹ РѕС‚РєСЂС‹РІР°РµС‚Рµ Р±Р°СЂР°Р±Р°РЅ [src]."
 	else
 		playsound(user, 'sound/weapons2/revolver_close.ogg', 50, 1)
-		user << "\blue Вы закрываете барабан [src]."
+		user << "\blue Р’С‹ Р·Р°РєСЂС‹РІР°РµС‚Рµ Р±Р°СЂР°Р±Р°РЅ [src]."
 	gurps_update_icon()
 
 /obj/item/weapon/gun/gurps/revolver/MouseDrop(atom/over_object)
@@ -236,7 +236,7 @@
 	if(flag) return
 
 	if(cylinder_open)
-		user << "\red Барабан открыт! Закройте его перед выстрелом."
+		user << "\red Р‘Р°СЂР°Р±Р°РЅ РѕС‚РєСЂС‹С‚! Р—Р°РєСЂРѕР№С‚Рµ РµРіРѕ РїРµСЂРµРґ РІС‹СЃС‚СЂРµР»РѕРј."
 		return
 
 	if(current_ammo <= 0)
@@ -250,7 +250,7 @@
 	var/mob/living/carbon/human/H = user
 
 	if(H.gurps_strength < gurps_min_strength)
-		user << "\red Вам не хватает силы чтобы точно стрелять из [src]!"
+		user << "\red Р’Р°Рј РЅРµ С…РІР°С‚Р°РµС‚ СЃРёР»С‹ С‡С‚РѕР±С‹ С‚РѕС‡РЅРѕ СЃС‚СЂРµР»СЏС‚СЊ РёР· [src]!"
 
 	var/skill = H.gurps_get_skill(gurps_skill)
 	skill += gurps_accuracy
@@ -264,13 +264,13 @@
 	playsound(user, 'sound/weapons/Gunshot.ogg', 100, 1)
 
 	user.visible_message(
-		"<span class='danger'>[user] стреляет в [target] из [src]!</span>",
-		"<span class='danger'>Вы стреляете в [target] из [src]!</span>"
+		"<span class='danger'>[user] СЃС‚СЂРµР»СЏРµС‚ РІ [target] РёР· [src]!</span>",
+		"<span class='danger'>Р’С‹ СЃС‚СЂРµР»СЏРµС‚Рµ РІ [target] РёР· [src]!</span>"
 	)
 
 	if(!attack["success"])
 		spawn(3)
-			user.visible_message("<span class='warning'>Пуля пролетает мимо [target]!</span>")
+			user.visible_message("<span class='warning'>РџСѓР»СЏ РїСЂРѕР»РµС‚Р°РµС‚ РјРёРјРѕ [target]!</span>")
 		return
 
 	if(ishuman(target))
@@ -300,23 +300,23 @@
 			var/effect_msg = gurps_determine_effect(E, was_broken, was_artery, was_tendon, attack["crit"])
 
 			spawn(2)
-				var/msg_others = "<span class='danger'>В [zone_name] [target_human] попадает пуля!</span>"
-				var/msg_self = "<span class='danger'>В вашу [zone_name] попадает пуля!</span>"
+				var/msg_others = "<span class='danger'>Р’ [zone_name] [target_human] РїРѕРїР°РґР°РµС‚ РїСѓР»СЏ!</span>"
+				var/msg_self = "<span class='danger'>Р’ РІР°С€Сѓ [zone_name] РїРѕРїР°РґР°РµС‚ РїСѓР»СЏ!</span>"
 
 				if(effect_msg)
 					msg_others += " <span class='danger'>[effect_msg]</span>"
 					msg_self += " <span class='danger'>[effect_msg]</span>"
 				else
-					msg_others += " <span class='notice'>Заурядное попадание.</span>"
-					msg_self += " <span class='notice'>Заурядное попадание.</span>"
+					msg_others += " <span class='notice'>Р—Р°СѓСЂСЏРґРЅРѕРµ РїРѕРїР°РґР°РЅРёРµ.</span>"
+					msg_self += " <span class='notice'>Р—Р°СѓСЂСЏРґРЅРѕРµ РїРѕРїР°РґР°РЅРёРµ.</span>"
 
 				target_human.visible_message(msg_others, msg_self)
 		else
 			spawn(2)
-				user.visible_message("<span class='warning'>Пуля попадает в [target_human], но конечность уничтожена!</span>")
+				user.visible_message("<span class='warning'>РџСѓР»СЏ РїРѕРїР°РґР°РµС‚ РІ [target_human], РЅРѕ РєРѕРЅРµС‡РЅРѕСЃС‚СЊ СѓРЅРёС‡С‚РѕР¶РµРЅР°!</span>")
 	else
 		spawn(2)
-			user.visible_message("<span class='danger'>[user] попадает в [target] из [src]!</span>")
+			user.visible_message("<span class='danger'>[user] РїРѕРїР°РґР°РµС‚ РІ [target] РёР· [src]!</span>")
 
 /obj/item/weapon/gun/gurps/revolver/attack(mob/M, mob/user)
 	if(current_ammo > 0 && !cylinder_open)
@@ -326,16 +326,16 @@
 
 /obj/item/weapon/gun/gurps/revolver/examine()
 	set src in usr
-	usr << "Револьвер .357 калибра. Патронов: [current_ammo]/[max_ammo]. Гильз в барабане: [fired_ammo]. Барабан [cylinder_open ? "открыт" : "закрыт"]."
+	usr << "Р РµРІРѕР»СЊРІРµСЂ .357 РєР°Р»РёР±СЂР°. РџР°С‚СЂРѕРЅРѕРІ: [current_ammo]/[max_ammo]. Р“РёР»СЊР· РІ Р±Р°СЂР°Р±Р°РЅРµ: [fired_ammo]. Р‘Р°СЂР°Р±Р°РЅ [cylinder_open ? "РѕС‚РєСЂС‹С‚" : "Р·Р°РєСЂС‹С‚"]."
 	..()
 
 
 // ============================================
-// МАГАЗИН
+// РњРђР“РђР—РРќ
 // ============================================
 /obj/item/weapon/ammo/gurps/magazine
-	name = "магазин"
-	desc = "Магазин для пистолета."
+	name = "РјР°РіР°Р·РёРЅ"
+	desc = "РњР°РіР°Р·РёРЅ РґР»СЏ РїРёСЃС‚РѕР»РµС‚Р°."
 	icon = 'icons/obj/weapons/ammo.dmi'
 	icon_state = "mother0"
 	w_class = 2.0
@@ -367,11 +367,11 @@
 /obj/item/weapon/ammo/gurps/magazine/attackby(obj/item/weapon/ammo/gurps/pistol/A, mob/user)
 	if(istype(A, /obj/item/weapon/ammo/gurps/pistol))
 		if(current_rounds >= max_rounds)
-			user << "\blue Магазин уже полностью заряжен!"
+			user << "\blue РњР°РіР°Р·РёРЅ СѓР¶Рµ РїРѕР»РЅРѕСЃС‚СЊСЋ Р·Р°СЂСЏР¶РµРЅ!"
 			return
 
 		current_rounds++
-		user << "\blue Вы заряжаете один патрон в магазин. ([current_rounds]/[max_rounds])"
+		user << "\blue Р’С‹ Р·Р°СЂСЏР¶Р°РµС‚Рµ РѕРґРёРЅ РїР°С‚СЂРѕРЅ РІ РјР°РіР°Р·РёРЅ. ([current_rounds]/[max_rounds])"
 		playsound(user, 'sound/weapons2/mag_load.ogg', 40, 1)
 
 		if(A.amount > 1)
@@ -386,15 +386,15 @@
 
 /obj/item/weapon/ammo/gurps/magazine/examine()
 	set src in usr
-	usr << "Магазин [caliber]. Патронов: [current_rounds]/[max_rounds]."
+	usr << "РњР°РіР°Р·РёРЅ [caliber]. РџР°С‚СЂРѕРЅРѕРІ: [current_rounds]/[max_rounds]."
 	..()
 
 // ============================================
-// МАГАЗИН ПИСТОЛЕТА .45
+// РњРђР“РђР—РРќ РџРРЎРўРћР›Р•РўРђ .45
 // ============================================
 /obj/item/weapon/ammo/gurps/magazine/pistol
-	name = "магазин пистолета"
-	desc = "Магазин для пистолета .45 калибра."
+	name = "РјР°РіР°Р·РёРЅ РїРёСЃС‚РѕР»РµС‚Р°"
+	desc = "РњР°РіР°Р·РёРЅ РґР»СЏ РїРёСЃС‚РѕР»РµС‚Р° .45 РєР°Р»РёР±СЂР°."
 	caliber = ".45 ACP"
 	max_rounds = 12
 	current_rounds = 12
@@ -403,11 +403,11 @@
 	icon_state_empty = "mother0"
 
 // ============================================
-// ПАТРОНЫ .45 ACP
+// РџРђРўР РћРќР« .45 ACP
 // ============================================
 /obj/item/weapon/ammo/gurps/pistol
-	name = "патрон .45 ACP"
-	desc = "Пистолетный патрон .45 калибра."
+	name = "РїР°С‚СЂРѕРЅ .45 ACP"
+	desc = "РџРёСЃС‚РѕР»РµС‚РЅС‹Р№ РїР°С‚СЂРѕРЅ .45 РєР°Р»РёР±СЂР°."
 	icon = 'icons/obj/weapons/newammo.dmi'
 	icon_state = "th1"
 	w_class = 1.0
@@ -431,14 +431,14 @@
 			if(in_hand && other)
 				if(in_hand.amount + other.amount <= 15)
 					in_hand.amount += other.amount
-					user << "\blue Вы объединили патроны. Теперь у вас [in_hand.amount] шт."
+					user << "\blue Р’С‹ РѕР±СЉРµРґРёРЅРёР»Рё РїР°С‚СЂРѕРЅС‹. РўРµРїРµСЂСЊ Сѓ РІР°СЃ [in_hand.amount] С€С‚."
 					del(other)
 					in_hand.ammo_update_icon()
 				else
 					var/overflow = (in_hand.amount + other.amount) - 15
 					in_hand.amount = 15
 					other.amount = overflow
-					user << "\blue Вы объединили патроны. [overflow] шт не поместилось."
+					user << "\blue Р’С‹ РѕР±СЉРµРґРёРЅРёР»Рё РїР°С‚СЂРѕРЅС‹. [overflow] С€С‚ РЅРµ РїРѕРјРµСЃС‚РёР»РѕСЃСЊ."
 					in_hand.ammo_update_icon()
 					other.ammo_update_icon()
 				return
@@ -470,11 +470,11 @@
 	..()
 
 // ============================================
-// ПИСТОЛЕТ С МАГАЗИНОМ (С ЗАТВОРОМ)
+// РџРРЎРўРћР›Р•Рў РЎ РњРђР“РђР—РРќРћРњ (РЎ Р—РђРўР’РћР РћРњ)
 // ============================================
 /obj/item/weapon/gun/gurps/pistol
-	name = "Пистолет"
-	desc = "Самозарядный пистолет .45 калибра с магазинным питанием."
+	name = "РџРёСЃС‚РѕР»РµС‚"
+	desc = "РЎР°РјРѕР·Р°СЂСЏРґРЅС‹Р№ РїРёСЃС‚РѕР»РµС‚ .45 РєР°Р»РёР±СЂР° СЃ РјР°РіР°Р·РёРЅРЅС‹Рј РїРёС‚Р°РЅРёРµРј."
 	icon = 'icons/obj/weapons/gun.dmi'
 	icon_state = "mother1"
 	var/icon_state_safety_on = "mother0"
@@ -503,11 +503,11 @@
 	else
 		icon_state = icon_state_safety_off
 
-// Передёрнуть затвор (ЛКМ когда в руке)
+// РџРµСЂРµРґС‘СЂРЅСѓС‚СЊ Р·Р°С‚РІРѕСЂ (Р›РљРњ РєРѕРіРґР° РІ СЂСѓРєРµ)
 /obj/item/weapon/gun/gurps/pistol/attack_self(mob/user)
 	if(src.loc == user)
 		if(slide_locked)
-			user << "\red Затвор заблокирован. Вставьте новый магазин."
+			user << "\red Р—Р°С‚РІРѕСЂ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ. Р’СЃС‚Р°РІСЊС‚Рµ РЅРѕРІС‹Р№ РјР°РіР°Р·РёРЅ."
 			return
 
 		if(chambered)
@@ -516,8 +516,8 @@
 			ejected.ammo_update_icon()
 			chambered = FALSE
 			user.visible_message(
-				"<span class='warning'>[user] передёргивает затвор [src], извлекая патрон из патронника!</span>",
-				"<span class='notice'>Вы передёргиваете затвор. Патрон извлечён из патронника.</span>"
+				"<span class='warning'>[user] РїРµСЂРµРґС‘СЂРіРёРІР°РµС‚ Р·Р°С‚РІРѕСЂ [src], РёР·РІР»РµРєР°СЏ РїР°С‚СЂРѕРЅ РёР· РїР°С‚СЂРѕРЅРЅРёРєР°!</span>",
+				"<span class='notice'>Р’С‹ РїРµСЂРµРґС‘СЂРіРёРІР°РµС‚Рµ Р·Р°С‚РІРѕСЂ. РџР°С‚СЂРѕРЅ РёР·РІР»РµС‡С‘РЅ РёР· РїР°С‚СЂРѕРЅРЅРёРєР°.</span>"
 			)
 			playsound(user, 'sound/weapons2/rifle_cock.ogg', 50, 1)
 
@@ -526,41 +526,41 @@
 			magazine.update_magazine_icon()
 			chambered = TRUE
 			user.visible_message(
-				"<span class='warning'>[user] досылает патрон в патронник [src]!</span>",
-				"<span class='notice'>Вы досылаете патрон в патронник.</span>"
+				"<span class='warning'>[user] РґРѕСЃС‹Р»Р°РµС‚ РїР°С‚СЂРѕРЅ РІ РїР°С‚СЂРѕРЅРЅРёРє [src]!</span>",
+				"<span class='notice'>Р’С‹ РґРѕСЃС‹Р»Р°РµС‚Рµ РїР°С‚СЂРѕРЅ РІ РїР°С‚СЂРѕРЅРЅРёРє.</span>"
 			)
 			playsound(user, 'sound/weapons2/rifle_cock.ogg', 50, 1)
 
 		if(!chambered && (!magazine || magazine.current_rounds <= 0))
 			slide_locked = TRUE
-			user << "\red Затвор заблокирован. Магазин пуст."
+			user << "\red Р—Р°С‚РІРѕСЂ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ. РњР°РіР°Р·РёРЅ РїСѓСЃС‚."
 
 		update_pistol_icon()
 	else
 		..()
 
-// Предохранитель (клавиша E)
+// РџСЂРµРґРѕС…СЂР°РЅРёС‚РµР»СЊ (РєР»Р°РІРёС€Р° E)
 /obj/item/weapon/gun/gurps/pistol/attack_hand(mob/user)
 	if(src.loc == user)
 		safety_on = !safety_on
 		if(safety_on)
 			playsound(user, 'sound/weapons2/safety.ogg', 30, 1)
-			user << "\blue Вы включаете предохранитель [src]."
+			user << "\blue Р’С‹ РІРєР»СЋС‡Р°РµС‚Рµ РїСЂРµРґРѕС…СЂР°РЅРёС‚РµР»СЊ [src]."
 		else
 			playsound(user, 'sound/weapons2/safety.ogg', 30, 1)
-			user << "\blue Вы выключаете предохранитель [src]."
+			user << "\blue Р’С‹ РІС‹РєР»СЋС‡Р°РµС‚Рµ РїСЂРµРґРѕС…СЂР°РЅРёС‚РµР»СЊ [src]."
 		update_pistol_icon()
 	else
 		..()
 
-// Вставить магазин
+// Р’СЃС‚Р°РІРёС‚СЊ РјР°РіР°Р·РёРЅ
 /obj/item/weapon/gun/gurps/pistol/attackby(obj/item/weapon/ammo/gurps/magazine/M, mob/user)
 	if(istype(M, /obj/item/weapon/ammo/gurps/magazine/pistol))
 		if(magazine)
-			user << "\red Магазин уже вставлен! Сначала извлеките его."
+			user << "\red РњР°РіР°Р·РёРЅ СѓР¶Рµ РІСЃС‚Р°РІР»РµРЅ! РЎРЅР°С‡Р°Р»Р° РёР·РІР»РµРєРёС‚Рµ РµРіРѕ."
 			return
 
-		user << "\blue Вы вставляете магазин в [src]."
+		user << "\blue Р’С‹ РІСЃС‚Р°РІР»СЏРµС‚Рµ РјР°РіР°Р·РёРЅ РІ [src]."
 		playsound(user, 'sound/weapons2/bigpistol_reload.ogg', 50, 1)
 		user.u_equip(M)
 		M.loc = src
@@ -570,7 +570,7 @@
 	else
 		..()
 
-// Извлечение магазина (перетягивание)
+// РР·РІР»РµС‡РµРЅРёРµ РјР°РіР°Р·РёРЅР° (РїРµСЂРµС‚СЏРіРёРІР°РЅРёРµ)
 /obj/item/weapon/gun/gurps/pistol/MouseDrop(atom/over_object)
 	if(usr && ishuman(usr))
 		var/mob/living/carbon/human/H = usr
@@ -584,36 +584,36 @@
 						H.l_hand = M
 						M.loc = H
 						M.layer = 20
-						H << "\blue Вы достаёте магазин в левую руку."
+						H << "\blue Р’С‹ РґРѕСЃС‚Р°С‘С‚Рµ РјР°РіР°Р·РёРЅ РІ Р»РµРІСѓСЋ СЂСѓРєСѓ."
 					else if(!H.r_hand)
 						H.r_hand = M
 						M.loc = H
 						M.layer = 20
-						H << "\blue Вы достаёте магазин в правую руку."
+						H << "\blue Р’С‹ РґРѕСЃС‚Р°С‘С‚Рµ РјР°РіР°Р·РёРЅ РІ РїСЂР°РІСѓСЋ СЂСѓРєСѓ."
 					else
 						M.loc = get_turf(H)
-						H << "\blue Обе руки заняты! Магазин падает на пол."
+						H << "\blue РћР±Рµ СЂСѓРєРё Р·Р°РЅСЏС‚С‹! РњР°РіР°Р·РёРЅ РїР°РґР°РµС‚ РЅР° РїРѕР»."
 				else
 					M.loc = get_turf(H)
 
 				H.visible_message(
-					"<span class='warning'>[H] извлекает магазин из [src]!</span>",
-					"<span class='notice'>Вы извлекаете магазин из [src]. ([M.current_rounds]/[M.max_rounds])</span>"
+					"<span class='warning'>[H] РёР·РІР»РµРєР°РµС‚ РјР°РіР°Р·РёРЅ РёР· [src]!</span>",
+					"<span class='notice'>Р’С‹ РёР·РІР»РµРєР°РµС‚Рµ РјР°РіР°Р·РёРЅ РёР· [src]. ([M.current_rounds]/[M.max_rounds])</span>"
 				)
 				playsound(H, 'sound/weapons2/bigpistol_unload.ogg', 50, 1)
 				update_pistol_icon()
 	..()
 
-// Выстрел
+// Р’С‹СЃС‚СЂРµР»
 /obj/item/weapon/gun/gurps/pistol/afterattack(atom/target, mob/user, flag)
 	if(flag) return
 
 	if(safety_on)
-		user << "\red Предохранитель включён! Выключите его перед выстрелом."
+		user << "\red РџСЂРµРґРѕС…СЂР°РЅРёС‚РµР»СЊ РІРєР»СЋС‡С‘РЅ! Р’С‹РєР»СЋС‡РёС‚Рµ РµРіРѕ РїРµСЂРµРґ РІС‹СЃС‚СЂРµР»РѕРј."
 		return
 
 	if(!chambered)
-		user << "\red Патронник пуст! Передёрните затвор."
+		user << "\red РџР°С‚СЂРѕРЅРЅРёРє РїСѓСЃС‚! РџРµСЂРµРґС‘СЂРЅРёС‚Рµ Р·Р°С‚РІРѕСЂ."
 		playsound(user, 'sound/weapons2/dryfire.ogg', 50, 1)
 		return
 
@@ -623,7 +623,7 @@
 	var/mob/living/carbon/human/H = user
 
 	if(H.gurps_strength < gurps_min_strength)
-		user << "\red Вам не хватает силы чтобы точно стрелять из [src]!"
+		user << "\red Р’Р°Рј РЅРµ С…РІР°С‚Р°РµС‚ СЃРёР»С‹ С‡С‚РѕР±С‹ С‚РѕС‡РЅРѕ СЃС‚СЂРµР»СЏС‚СЊ РёР· [src]!"
 
 	var/skill = H.gurps_get_skill(gurps_skill)
 	skill += gurps_accuracy
@@ -644,13 +644,13 @@
 	playsound(user, 'sound/weapons2/p45.ogg', 100, 1)
 
 	user.visible_message(
-		"<span class='danger'>[user] стреляет в [target] из [src]!</span>",
-		"<span class='danger'>Вы стреляете в [target] из [src]!</span>"
+		"<span class='danger'>[user] СЃС‚СЂРµР»СЏРµС‚ РІ [target] РёР· [src]!</span>",
+		"<span class='danger'>Р’С‹ СЃС‚СЂРµР»СЏРµС‚Рµ РІ [target] РёР· [src]!</span>"
 	)
 
 	if(!attack["success"])
 		spawn(3)
-			user.visible_message("<span class='warning'>Пуля пролетает мимо [target]!</span>")
+			user.visible_message("<span class='warning'>РџСѓР»СЏ РїСЂРѕР»РµС‚Р°РµС‚ РјРёРјРѕ [target]!</span>")
 		return
 
 	if(ishuman(target))
@@ -680,40 +680,40 @@
 			var/effect_msg = gurps_determine_effect(E, was_broken, was_artery, was_tendon, attack["crit"])
 
 			spawn(2)
-				var/msg_others = "<span class='danger'>В [zone_name] [target_human] попадает пуля!</span>"
-				var/msg_self = "<span class='danger'>В вашу [zone_name] попадает пуля!</span>"
+				var/msg_others = "<span class='danger'>Р’ [zone_name] [target_human] РїРѕРїР°РґР°РµС‚ РїСѓР»СЏ!</span>"
+				var/msg_self = "<span class='danger'>Р’ РІР°С€Сѓ [zone_name] РїРѕРїР°РґР°РµС‚ РїСѓР»СЏ!</span>"
 
 				if(effect_msg)
 					msg_others += " <span class='danger'>[effect_msg]</span>"
 					msg_self += " <span class='danger'>[effect_msg]</span>"
 				else
-					msg_others += " <span class='notice'>Заурядное попадание.</span>"
-					msg_self += " <span class='notice'>Заурядное попадание.</span>"
+					msg_others += " <span class='notice'>Р—Р°СѓСЂСЏРґРЅРѕРµ РїРѕРїР°РґР°РЅРёРµ.</span>"
+					msg_self += " <span class='notice'>Р—Р°СѓСЂСЏРґРЅРѕРµ РїРѕРїР°РґР°РЅРёРµ.</span>"
 
 				target_human.visible_message(msg_others, msg_self)
 		else
 			spawn(2)
-				user.visible_message("<span class='warning'>Пуля попадает в [target_human], но конечность уничтожена!</span>")
+				user.visible_message("<span class='warning'>РџСѓР»СЏ РїРѕРїР°РґР°РµС‚ РІ [target_human], РЅРѕ РєРѕРЅРµС‡РЅРѕСЃС‚СЊ СѓРЅРёС‡С‚РѕР¶РµРЅР°!</span>")
 	else
 		spawn(2)
-			user.visible_message("<span class='danger'>[user] попадает в [target] из [src]!</span>")
+			user.visible_message("<span class='danger'>[user] РїРѕРїР°РґР°РµС‚ РІ [target] РёР· [src]!</span>")
 
-// Удар пистолетом
+// РЈРґР°СЂ РїРёСЃС‚РѕР»РµС‚РѕРј
 /obj/item/weapon/gun/gurps/pistol/attack(mob/M, mob/user)
 	if(chambered && !safety_on)
 		afterattack(M, user, 0)
 	else
 		..()
 
-// Осмотр пистолета
+// РћСЃРјРѕС‚СЂ РїРёСЃС‚РѕР»РµС‚Р°
 /obj/item/weapon/gun/gurps/pistol/examine()
 	set src in usr
-	usr << "Пистолет [caliber]."
+	usr << "РџРёСЃС‚РѕР»РµС‚ [caliber]."
 	if(magazine)
-		usr << "Патронов в магазине: [magazine.current_rounds]/[magazine.max_rounds]."
+		usr << "РџР°С‚СЂРѕРЅРѕРІ РІ РјР°РіР°Р·РёРЅРµ: [magazine.current_rounds]/[magazine.max_rounds]."
 	else
-		usr << "Магазин отсутствует."
-	usr << "Патрон в патроннике: [chambered ? "есть" : "нет"]."
-	usr << "Предохранитель [safety_on ? "включён" : "выключен"]."
-	usr << "Затвор [slide_locked ? "заблокирован" : "свободен"]."
+		usr << "РњР°РіР°Р·РёРЅ РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚."
+	usr << "РџР°С‚СЂРѕРЅ РІ РїР°С‚СЂРѕРЅРЅРёРєРµ: [chambered ? "РµСЃС‚СЊ" : "РЅРµС‚"]."
+	usr << "РџСЂРµРґРѕС…СЂР°РЅРёС‚РµР»СЊ [safety_on ? "РІРєР»СЋС‡С‘РЅ" : "РІС‹РєР»СЋС‡РµРЅ"]."
+	usr << "Р—Р°С‚РІРѕСЂ [slide_locked ? "Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ" : "СЃРІРѕР±РѕРґРµРЅ"]."
 	..()
