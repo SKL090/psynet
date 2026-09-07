@@ -1,2 +1,33 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Исходники и текстовые ресурсы проекта: всегда UTF-8 (BYOND 513+ компилирует
+# .dm как UTF-8), нормализуем переводы строк в LF.
+*.dm    text working-tree-encoding=UTF-8
+*.dme   text working-tree-encoding=UTF-8
+*.dmf   text working-tree-encoding=UTF-8
+*.dmm   text working-tree-encoding=UTF-8
+*.dmp   text working-tree-encoding=UTF-8
+*.txt   text
+*.html  text
+*.sql   text
+*.md    text
+*.cpp   text
+*.hpp   text
+*.h     text
+
+# Бинарные форматы BYOND и прочие бинарники: не трогать
+*.dmi   binary
+*.dmb   binary
+*.rsc   binary
+*.db    binary
+*.dll   binary
+*.exe   binary
+*.dat   binary
+*.ban   binary
+*.ogg   binary
+*.wav   binary
+*.midi  binary
+*.png   binary
+*.jpg   binary
+*.psd   binary

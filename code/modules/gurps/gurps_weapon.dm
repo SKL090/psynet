@@ -1,10 +1,10 @@
 // ============================
-// gurps_weapons.dm - ОРУЖИЕ С ТИПАМИ УРОНА, ЗВУКАМИ И КРОВАВЫМИ СПРАЙТАМИ
+// gurps_weapons.dm - РћР РЈР–РР• РЎ РўРРџРђРњР РЈР РћРќРђ, Р—Р’РЈРљРђРњР Р РљР РћР’РђР’Р«РњР РЎРџР РђР™РўРђРњР
 // ============================
 
 /obj/item/weapon/gurps
 	name = "gurps weapon"
-	desc = "Оружие для GURPS-боёвки."
+	desc = "РћСЂСѓР¶РёРµ РґР»СЏ GURPS-Р±РѕС‘РІРєРё."
 	icon = 'icons/obj/lwweapons.dmi'
 	var/gurps_skill = "brawling"
 	var/gurps_instrumental_name = null
@@ -83,10 +83,10 @@
 
 /obj/item/weapon/gurps/proc/get_sharpness_text()
 	if(!is_edged_mode()) return null
-	if(sharpness > 75) return "Лезвие острое."
-	if(sharpness > 50) return "Лезвие слегка затуплено."
-	if(sharpness > 0) return "Лезвие тупое."
-	return "Лезвие полностью затуплено."
+	if(sharpness > 75) return "Р›РµР·РІРёРµ РѕСЃС‚СЂРѕРµ."
+	if(sharpness > 50) return "Р›РµР·РІРёРµ СЃР»РµРіРєР° Р·Р°С‚СѓРїР»РµРЅРѕ."
+	if(sharpness > 0) return "Р›РµР·РІРёРµ С‚СѓРїРѕРµ."
+	return "Р›РµР·РІРёРµ РїРѕР»РЅРѕСЃС‚СЊСЋ Р·Р°С‚СѓРїР»РµРЅРѕ."
 
 /obj/item/weapon/gurps/proc/get_damage_type()
 	if(gurps_current_type != null) return gurps_current_type
@@ -128,30 +128,30 @@
 	if(gurps_current_type == null)
 		gurps_current_type = gurps_alt_type
 		user.visible_message(
-			"<span class='notice'>[user] меняет хват [src]. Теперь [gurps_alt_name].</span>",
-			"<span class='notice'>Теперь вы будете [gurps_alt_name] врага.</span>"
+			"<span class='notice'>[user] РјРµРЅСЏРµС‚ С…РІР°С‚ [src]. РўРµРїРµСЂСЊ [gurps_alt_name].</span>",
+			"<span class='notice'>РўРµРїРµСЂСЊ РІС‹ Р±СѓРґРµС‚Рµ [gurps_alt_name] РІСЂР°РіР°.</span>"
 		)
 	else
 		gurps_current_type = null
 		user.visible_message(
-			"<span class='notice'>[user] меняет хват [src] обратно.</span>",
-			"<span class='notice'>Вы вернулись к основному типу атаки.</span>"
+			"<span class='notice'>[user] РјРµРЅСЏРµС‚ С…РІР°С‚ [src] РѕР±СЂР°С‚РЅРѕ.</span>",
+			"<span class='notice'>Р’С‹ РІРµСЂРЅСѓР»РёСЃСЊ Рє РѕСЃРЅРѕРІРЅРѕРјСѓ С‚РёРїСѓ Р°С‚Р°РєРё.</span>"
 		)
 	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
 		H.update_clothing()
 
-// ===== НОЖ =====
+// ===== РќРћР– =====
 /obj/item/weapon/gurps/knife
-	name = "Боевой нож"
-	gurps_instrumental_name = "боевым ножом"
-	desc = "Боевой нож. Острый и надёжный."
+	name = "Р‘РѕРµРІРѕР№ РЅРѕР¶"
+	gurps_instrumental_name = "Р±РѕРµРІС‹Рј РЅРѕР¶РѕРј"
+	desc = "Р‘РѕРµРІРѕР№ РЅРѕР¶. РћСЃС‚СЂС‹Р№ Рё РЅР°РґС‘Р¶РЅС‹Р№."
 	icon_state = "combat"
 	item_state = "knife"
 	gurps_skill = "knife"
 	gurps_damage_type = DAMAGE_CUT
 	gurps_alt_type = DAMAGE_PIERCE
-	gurps_alt_name = "колоть"
+	gurps_alt_name = "РєРѕР»РѕС‚СЊ"
 	gurps_damage_bonus = 2
 	gurps_damage_mode = "sw"
 	gurps_damage_modifier = -3
@@ -167,17 +167,17 @@
 	bloody_inhand_state = "knifeb"
 	bloody_icon_state = "combat_blood"
 
-// ===== МЕЧ =====
+// ===== РњР•Р§ =====
 /obj/item/weapon/gurps/sword
-	name = "Меч"
-	gurps_instrumental_name = "мечом"
-	desc = "Обоюдоострый меч."
+	name = "РњРµС‡"
+	gurps_instrumental_name = "РјРµС‡РѕРј"
+	desc = "РћР±РѕСЋРґРѕРѕСЃС‚СЂС‹Р№ РјРµС‡."
 	icon_state = "sword"
 	item_state = "claymore"
 	gurps_skill = "sword"
 	gurps_damage_type = DAMAGE_CUT
 	gurps_alt_type = DAMAGE_PIERCE
-	gurps_alt_name = "колоть"
+	gurps_alt_name = "РєРѕР»РѕС‚СЊ"
 	gurps_damage_bonus = 4
 	gurps_damage_mode = "sw"
 	gurps_damage_modifier = 1
@@ -194,11 +194,11 @@
 	bloody_inhand_state = "claymoreb"
 	bloody_icon_state = "sword_blood"
 
-// ===== ЖЕЛЕЗНЫЙ КИНЖАЛ =====
+// ===== Р–Р•Р›Р•Р—РќР«Р™ РљРРќР–РђР› =====
 /obj/item/weapon/gurps/dagger
-	name = "Железный Кинжал"
-	gurps_instrumental_name = "железным кинжалом"
-	desc = "Тонкий кинжал. Только колющие удары."
+	name = "Р–РµР»РµР·РЅС‹Р№ РљРёРЅР¶Р°Р»"
+	gurps_instrumental_name = "Р¶РµР»РµР·РЅС‹Рј РєРёРЅР¶Р°Р»РѕРј"
+	desc = "РўРѕРЅРєРёР№ РєРёРЅР¶Р°Р». РўРѕР»СЊРєРѕ РєРѕР»СЋС‰РёРµ СѓРґР°СЂС‹."
 	icon_state = "dagger"
 	item_state = "dagger"
 	gurps_skill = "knife"
@@ -216,17 +216,17 @@
 	bloody_inhand_state = "daggerb"
 	bloody_icon_state = "dagger_blood"
 
-// ===== ТОПОР =====
+// ===== РўРћРџРћР  =====
 /obj/item/weapon/gurps/axe
-	name = "Боевой топор"
-	gurps_instrumental_name = "боевым топором"
-	desc = "Тяжёлый боевой топор. Можно ударить обухом."
+	name = "Р‘РѕРµРІРѕР№ С‚РѕРїРѕСЂ"
+	gurps_instrumental_name = "Р±РѕРµРІС‹Рј С‚РѕРїРѕСЂРѕРј"
+	desc = "РўСЏР¶С‘Р»С‹Р№ Р±РѕРµРІРѕР№ С‚РѕРїРѕСЂ. РњРѕР¶РЅРѕ СѓРґР°СЂРёС‚СЊ РѕР±СѓС…РѕРј."
 	icon_state = "combataxe"
 	item_state = "hatchet"
 	gurps_skill = "axe_club"
 	gurps_damage_type = DAMAGE_CUT
 	gurps_alt_type = DAMAGE_CRUSH
-	gurps_alt_name = "бить обухом"
+	gurps_alt_name = "Р±РёС‚СЊ РѕР±СѓС…РѕРј"
 	gurps_damage_bonus = 8
 	gurps_damage_mode = "sw"
 	gurps_damage_modifier = 2
@@ -244,11 +244,11 @@
 	bloody_inhand_state = "hatchetb"
 	bloody_icon_state = "combataxe_blood"
 
-// ===== ДУБИНКА =====
+// ===== Р”РЈР‘РРќРљРђ =====
 /obj/item/weapon/gurps/club
-	name = "Тяжелая палица"
-	gurps_instrumental_name = "тяжёлой палицей"
-	desc = "Тяжёлая дубинка."
+	name = "РўСЏР¶РµР»Р°СЏ РїР°Р»РёС†Р°"
+	gurps_instrumental_name = "С‚СЏР¶С‘Р»РѕР№ РїР°Р»РёС†РµР№"
+	desc = "РўСЏР¶С‘Р»Р°СЏ РґСѓР±РёРЅРєР°."
 	icon_state = "club"
 	item_state = "club"
 	gurps_skill = "axe_club"
@@ -267,7 +267,7 @@
 /obj/item/weapon/gurps/examine()
 	..()
 	var/text = get_sharpness_text()
-	if(text) usr << "[text] Острота: [sharpness]%."
+	if(text) usr << "[text] РћСЃС‚СЂРѕС‚Р°: [sharpness]%."
 
 /obj/item/weapon/gurps/afterattack(atom/target, mob/user, flag)
 	..()

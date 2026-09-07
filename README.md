@@ -1,4 +1,4 @@
-﻿# Репозиторий Bay12Luna
+# Репозиторий Bay12Luna
 # Space Station Echo
 (название временное)
 

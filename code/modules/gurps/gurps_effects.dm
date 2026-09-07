@@ -1,8 +1,8 @@
 // ============================
-// gurps_effects.dm - ВСЕ ВИЗУАЛЬНЫЕ, ЗВУКОВЫЕ ЭФФЕКТЫ И СООБЩЕНИЯ (ФИНАЛ)
+// gurps_effects.dm - Р’РЎР• Р’РР—РЈРђР›Р¬РќР«Р•, Р—Р’РЈРљРћР’Р«Р• Р­Р¤Р¤Р•РљРўР« Р РЎРћРћР‘Р©Р•РќРРЇ (Р¤РРќРђР›)
 // ============================
 
-// ---------- КРОВЬ ПРИ ПОПАДАНИИ ----------
+// ---------- РљР РћР’Р¬ РџР Р РџРћРџРђР”РђРќРР ----------
 /proc/gurps_spawn_hit_blood(mob/living/carbon/human/target, zone, damage)
 	if(!target || !isturf(target.loc) || damage < 5) return
 
@@ -21,7 +21,7 @@
 	// Ordinary hits leave only splatter. Pools are reserved for arterial cuts
 	// and severed or ruptured body parts.
 
-// ---------- АРТЕРИАЛЬНЫЙ ФОНТАН ----------
+// ---------- РђР РўР•Р РРђР›Р¬РќР«Р™ Р¤РћРќРўРђРќ ----------
 /proc/gurps_spawn_artery_spray(mob/living/carbon/human/H)
 	if(!H || !isturf(H.loc)) return
 
@@ -36,7 +36,7 @@
 
 	playsound(H.loc, pick('sound/trauma/blood/blood1.ogg', 'sound/trauma/blood/blood2.ogg', 'sound/effects/splat.ogg'), 60, 1)
 
-// ---------- ЗВУКИ ----------
+// ---------- Р—Р’РЈРљР ----------
 /proc/gurps_play_hit_sound(mob/living/carbon/human/target, sound_file, volume = 50)
 	if(!target) return
 	if(!isturf(target.loc)) return
@@ -69,70 +69,70 @@
 /proc/gurps_get_parry_weapon_sound()
 	return pick('sound/weapons2/parry.ogg')
 
-// ---------- НАЗВАНИЯ ЗОН ----------
+// ---------- РќРђР—Р’РђРќРРЇ Р—РћРќ ----------
 /proc/gurps_zone_name_combat(zone)
 	switch(zone)
-		if("head") return pick("голову", "череп", "башку")
-		if("mouth") return pick("рот")
-		if("eyes") return pick("глаза")
-		if("neck", "throat") return pick("шею", "горло", "глотку")
-		if("chest") return pick("грудь")
-		if("vitals") return pick("живот")
-		if("groin") return pick("пах")
-		if("l_arm") return pick("левую руку")
-		if("r_arm") return pick("правую руку")
-		if("l_hand") return pick("левую кисть", "левую ладонь")
-		if("r_hand") return pick("правую кисть", "правую ладонь")
-		if("l_leg") return pick("левую ногу")
-		if("r_leg") return pick("правую ногу")
-		if("l_foot") return pick("левую ступню")
-		if("r_foot") return pick("правую ступню")
+		if("head") return pick("РіРѕР»РѕРІСѓ", "С‡РµСЂРµРї", "Р±Р°С€РєСѓ")
+		if("mouth") return pick("СЂРѕС‚")
+		if("eyes") return pick("РіР»Р°Р·Р°")
+		if("neck", "throat") return pick("С€РµСЋ", "РіРѕСЂР»Рѕ", "РіР»РѕС‚РєСѓ")
+		if("chest") return pick("РіСЂСѓРґСЊ")
+		if("vitals") return pick("Р¶РёРІРѕС‚")
+		if("groin") return pick("РїР°С…")
+		if("l_arm") return pick("Р»РµРІСѓСЋ СЂСѓРєСѓ")
+		if("r_arm") return pick("РїСЂР°РІСѓСЋ СЂСѓРєСѓ")
+		if("l_hand") return pick("Р»РµРІСѓСЋ РєРёСЃС‚СЊ", "Р»РµРІСѓСЋ Р»Р°РґРѕРЅСЊ")
+		if("r_hand") return pick("РїСЂР°РІСѓСЋ РєРёСЃС‚СЊ", "РїСЂР°РІСѓСЋ Р»Р°РґРѕРЅСЊ")
+		if("l_leg") return pick("Р»РµРІСѓСЋ РЅРѕРіСѓ")
+		if("r_leg") return pick("РїСЂР°РІСѓСЋ РЅРѕРіСѓ")
+		if("l_foot") return pick("Р»РµРІСѓСЋ СЃС‚СѓРїРЅСЋ")
+		if("r_foot") return pick("РїСЂР°РІСѓСЋ СЃС‚СѓРїРЅСЋ")
 	return zone
 
-// ---------- ПРЕДЛОГ ----------
+// ---------- РџР Р•Р”Р›РћР“ ----------
 /proc/gurps_zone_preposition(zone, weapon)
-	if(!weapon) return "в"
+	if(!weapon) return "РІ"
 	if(istype(weapon, /obj/item/weapon/gurps))
 		var/obj/item/weapon/gurps/GW = weapon
 		switch(GW.get_damage_type())
-			if(DAMAGE_PIERCE) return "в"
-			if(DAMAGE_CUT) return "по"
-			if(DAMAGE_CRUSH) return "по"
-	return "в"
+			if(DAMAGE_PIERCE) return "РІ"
+			if(DAMAGE_CUT) return "РїРѕ"
+			if(DAMAGE_CRUSH) return "РїРѕ"
+	return "РІ"
 
-// ---------- ГЛАГОЛЫ АТАКИ ----------
+// ---------- Р“Р›РђР“РћР›Р« РђРўРђРљР ----------
 /proc/gurps_attack_verb(obj/item/weapon, zone, damage, dmg_type, crit, miss)
 	if(miss)
 		if(weapon)
-			return pick("размахивает", "замахивается", "бьёт мимо", "не попадает", "промахивается")
+			return pick("СЂР°Р·РјР°С…РёРІР°РµС‚", "Р·Р°РјР°С…РёРІР°РµС‚СЃСЏ", "Р±СЊС‘С‚ РјРёРјРѕ", "РЅРµ РїРѕРїР°РґР°РµС‚", "РїСЂРѕРјР°С…РёРІР°РµС‚СЃСЏ")
 		else
-			return pick("промахивается", "бьёт в воздух", "не попадает", "замахивается мимо")
+			return pick("РїСЂРѕРјР°С…РёРІР°РµС‚СЃСЏ", "Р±СЊС‘С‚ РІ РІРѕР·РґСѓС…", "РЅРµ РїРѕРїР°РґР°РµС‚", "Р·Р°РјР°С…РёРІР°РµС‚СЃСЏ РјРёРјРѕ")
 
 	if(!weapon)
 		if(crit)
-			return pick("с сокрушительной силой бьёт", "обрушивает мощный удар", "проводит сокрушительный апперкот")
-		return pick("бьёт", "ударяет", "врезает", "заезжает", "впечатывает", "обрушивает")
+			return pick("СЃ СЃРѕРєСЂСѓС€РёС‚РµР»СЊРЅРѕР№ СЃРёР»РѕР№ Р±СЊС‘С‚", "РѕР±СЂСѓС€РёРІР°РµС‚ РјРѕС‰РЅС‹Р№ СѓРґР°СЂ", "РїСЂРѕРІРѕРґРёС‚ СЃРѕРєСЂСѓС€РёС‚РµР»СЊРЅС‹Р№ Р°РїРїРµСЂРєРѕС‚")
+		return pick("Р±СЊС‘С‚", "СѓРґР°СЂСЏРµС‚", "РІСЂРµР·Р°РµС‚", "Р·Р°РµР·Р¶Р°РµС‚", "РІРїРµС‡Р°С‚С‹РІР°РµС‚", "РѕР±СЂСѓС€РёРІР°РµС‚")
 
 	if(dmg_type == DAMAGE_PIERCE)
 		if(crit)
-			return pick("с грациозным выпадом втыкает", "делает изящный укол", "пронзает точным выпадом", "наносит смертоносный укол")
-		return pick("втыкает", "колет", "пронзает", "протыкает", "тычет")
+			return pick("СЃ РіСЂР°С†РёРѕР·РЅС‹Рј РІС‹РїР°РґРѕРј РІС‚С‹РєР°РµС‚", "РґРµР»Р°РµС‚ РёР·СЏС‰РЅС‹Р№ СѓРєРѕР»", "РїСЂРѕРЅР·Р°РµС‚ С‚РѕС‡РЅС‹Рј РІС‹РїР°РґРѕРј", "РЅР°РЅРѕСЃРёС‚ СЃРјРµСЂС‚РѕРЅРѕСЃРЅС‹Р№ СѓРєРѕР»")
+		return pick("РІС‚С‹РєР°РµС‚", "РєРѕР»РµС‚", "РїСЂРѕРЅР·Р°РµС‚", "РїСЂРѕС‚С‹РєР°РµС‚", "С‚С‹С‡РµС‚")
 
 	if(dmg_type == DAMAGE_CUT)
 		if(crit)
-			return pick("с грациозным замахом рассекает", "наносит глубокий порез", "вспарывает мощным ударом", "рассекает с хрустом")
-		return pick("режет", "кромсает", "полосует", "рассекает", "шинкует", "рубит")
+			return pick("СЃ РіСЂР°С†РёРѕР·РЅС‹Рј Р·Р°РјР°С…РѕРј СЂР°СЃСЃРµРєР°РµС‚", "РЅР°РЅРѕСЃРёС‚ РіР»СѓР±РѕРєРёР№ РїРѕСЂРµР·", "РІСЃРїР°СЂС‹РІР°РµС‚ РјРѕС‰РЅС‹Рј СѓРґР°СЂРѕРј", "СЂР°СЃСЃРµРєР°РµС‚ СЃ С…СЂСѓСЃС‚РѕРј")
+		return pick("СЂРµР¶РµС‚", "РєСЂРѕРјСЃР°РµС‚", "РїРѕР»РѕСЃСѓРµС‚", "СЂР°СЃСЃРµРєР°РµС‚", "С€РёРЅРєСѓРµС‚", "СЂСѓР±РёС‚")
 
 	if(dmg_type == DAMAGE_CRUSH)
 		if(crit)
-			return pick("с сокрушительной силой обрушивает", "наносит сокрушительный удар", "впечатывает со всей дури", "проводит мощный замах")
-		return pick("бьёт", "ударяет", "дубасит", "обрушивает", "впечатывает", "прикладывает")
+			return pick("СЃ СЃРѕРєСЂСѓС€РёС‚РµР»СЊРЅРѕР№ СЃРёР»РѕР№ РѕР±СЂСѓС€РёРІР°РµС‚", "РЅР°РЅРѕСЃРёС‚ СЃРѕРєСЂСѓС€РёС‚РµР»СЊРЅС‹Р№ СѓРґР°СЂ", "РІРїРµС‡Р°С‚С‹РІР°РµС‚ СЃРѕ РІСЃРµР№ РґСѓСЂРё", "РїСЂРѕРІРѕРґРёС‚ РјРѕС‰РЅС‹Р№ Р·Р°РјР°С…")
+		return pick("Р±СЊС‘С‚", "СѓРґР°СЂСЏРµС‚", "РґСѓР±Р°СЃРёС‚", "РѕР±СЂСѓС€РёРІР°РµС‚", "РІРїРµС‡Р°С‚С‹РІР°РµС‚", "РїСЂРёРєР»Р°РґС‹РІР°РµС‚")
 
 // ============================
-// ГЛАВНЫЕ СООБЩЕНИЯ БОЕВКИ
+// Р“Р›РђР’РќР«Р• РЎРћРћР‘Р©Р•РќРРЇ Р‘РћР•Р’РљР
 // ============================
 
-// --- СООБЩЕНИЕ ПРОМАХА ---
+// --- РЎРћРћР‘Р©Р•РќРР• РџР РћРњРђРҐРђ ---
 /proc/gurps_combat_miss_message(mob/attacker, mob/target, obj/item/weapon, intended_zone)
 	if(!attacker || !target) return
 
@@ -140,16 +140,16 @@
 
 	if(weapon)
 		attacker.visible_message(
-			"<span class='warning'>[attacker] замахивается [weapon] в [zone_name] [target], но промахивается!</span>",
-			"<span class='warning'>Вы замахиваетесь [weapon] в [zone_name], но промахиваетесь!</span>"
+			"<span class='warning'>[attacker] Р·Р°РјР°С…РёРІР°РµС‚СЃСЏ [weapon] РІ [zone_name] [target], РЅРѕ РїСЂРѕРјР°С…РёРІР°РµС‚СЃСЏ!</span>",
+			"<span class='warning'>Р’С‹ Р·Р°РјР°С…РёРІР°РµС‚РµСЃСЊ [weapon] РІ [zone_name], РЅРѕ РїСЂРѕРјР°С…РёРІР°РµС‚РµСЃСЊ!</span>"
 		)
 	else
 		attacker.visible_message(
-			"<span class='warning'>[attacker] бьёт в [zone_name] [target], но промахивается!</span>",
-			"<span class='warning'>Вы бьёте в [zone_name], но промахиваетесь!</span>"
+			"<span class='warning'>[attacker] Р±СЊС‘С‚ РІ [zone_name] [target], РЅРѕ РїСЂРѕРјР°С…РёРІР°РµС‚СЃСЏ!</span>",
+			"<span class='warning'>Р’С‹ Р±СЊС‘С‚Рµ РІ [zone_name], РЅРѕ РїСЂРѕРјР°С…РёРІР°РµС‚РµСЃСЊ!</span>"
 		)
 
-// --- СООБЩЕНИЕ РИКОШЕТА ---
+// --- РЎРћРћР‘Р©Р•РќРР• Р РРљРћРЁР•РўРђ ---
 /proc/gurps_combat_ricochet_message(mob/attacker, mob/target, obj/item/weapon, intended_zone, actual_zone)
 	if(!attacker || !target) return
 
@@ -158,16 +158,16 @@
 
 	if(weapon)
 		attacker.visible_message(
-			"<span class='warning'>[attacker] целится [weapon] в [intended_name] [target], но промахивается и попадает в [actual_name]!</span>",
-			"<span class='warning'>Вы целитесь в [intended_name], но промахиваетесь и попадаете в [actual_name]!</span>"
+			"<span class='warning'>[attacker] С†РµР»РёС‚СЃСЏ [weapon] РІ [intended_name] [target], РЅРѕ РїСЂРѕРјР°С…РёРІР°РµС‚СЃСЏ Рё РїРѕРїР°РґР°РµС‚ РІ [actual_name]!</span>",
+			"<span class='warning'>Р’С‹ С†РµР»РёС‚РµСЃСЊ РІ [intended_name], РЅРѕ РїСЂРѕРјР°С…РёРІР°РµС‚РµСЃСЊ Рё РїРѕРїР°РґР°РµС‚Рµ РІ [actual_name]!</span>"
 		)
 	else
 		attacker.visible_message(
-			"<span class='warning'>[attacker] целится в [intended_name] [target], но промахивается и попадает в [actual_name]!</span>",
-			"<span class='warning'>Вы целитесь в [intended_name], но промахиваетесь и попадаете в [actual_name]!</span>"
+			"<span class='warning'>[attacker] С†РµР»РёС‚СЃСЏ РІ [intended_name] [target], РЅРѕ РїСЂРѕРјР°С…РёРІР°РµС‚СЃСЏ Рё РїРѕРїР°РґР°РµС‚ РІ [actual_name]!</span>",
+			"<span class='warning'>Р’С‹ С†РµР»РёС‚РµСЃСЊ РІ [intended_name], РЅРѕ РїСЂРѕРјР°С…РёРІР°РµС‚РµСЃСЊ Рё РїРѕРїР°РґР°РµС‚Рµ РІ [actual_name]!</span>"
 		)
 
-// --- СООБЩЕНИЕ ПОПАДАНИЯ ---
+// --- РЎРћРћР‘Р©Р•РќРР• РџРћРџРђР”РђРќРРЇ ---
 /proc/gurps_combat_hit_message(mob/attacker, mob/target, obj/item/weapon, zone, damage, dmg_type, is_crit, effect_msg, low_damage_roll = FALSE)
 	if(!attacker || !target) return
 
@@ -186,7 +186,7 @@
 	else
 		msg_others += " [prep] [zone_name] [target].</span>"
 
-	var/msg_self = "<span class='danger'>Вы [verb]"
+	var/msg_self = "<span class='danger'>Р’С‹ [verb]"
 	if(weapon)
 		msg_self += " [weapon_name] [zone_name] [target].</span>"
 	else
@@ -196,15 +196,15 @@
 		msg_others += " <span class='danger'>[effect_msg]</span>"
 		msg_self += " <span class='danger'>[effect_msg]</span>"
 	if(is_crit)
-		msg_others += " <span class='danger'><B>Мощный удар!</B></span>"
-		msg_self += " <span class='danger'><B>Мощный удар!</B></span>"
+		msg_others += " <span class='danger'><B>РњРѕС‰РЅС‹Р№ СѓРґР°СЂ!</B></span>"
+		msg_self += " <span class='danger'><B>РњРѕС‰РЅС‹Р№ СѓРґР°СЂ!</B></span>"
 	else if(!effect_msg && low_damage_roll)
-		msg_others += " <span class='notice'>Заурядный удар.</span>"
-		msg_self += " <span class='notice'>Заурядный удар.</span>"
+		msg_others += " <span class='notice'>Р—Р°СѓСЂСЏРґРЅС‹Р№ СѓРґР°СЂ.</span>"
+		msg_self += " <span class='notice'>Р—Р°СѓСЂСЏРґРЅС‹Р№ СѓРґР°СЂ.</span>"
 
 	target.visible_message(msg_others, msg_self)
 
-// --- СООБЩЕНИЕ УНИЧТОЖЕННОЙ КОНЕЧНОСТИ ---
+// --- РЎРћРћР‘Р©Р•РќРР• РЈРќРР§РўРћР–Р•РќРќРћР™ РљРћРќР•Р§РќРћРЎРўР ---
 /proc/gurps_combat_destroyed_message(mob/attacker, mob/target, obj/item/weapon, zone)
 	if(!attacker || !target) return
 
@@ -212,62 +212,62 @@
 
 	if(weapon)
 		attacker.visible_message(
-			"<span class='warning'>[attacker] бьёт [weapon] в [zone_name] [target], но там уже нечего повреждать!</span>",
-			"<span class='warning'>Вы бьёте в [zone_name], но там уже нечего повреждать!</span>"
+			"<span class='warning'>[attacker] Р±СЊС‘С‚ [weapon] РІ [zone_name] [target], РЅРѕ С‚Р°Рј СѓР¶Рµ РЅРµС‡РµРіРѕ РїРѕРІСЂРµР¶РґР°С‚СЊ!</span>",
+			"<span class='warning'>Р’С‹ Р±СЊС‘С‚Рµ РІ [zone_name], РЅРѕ С‚Р°Рј СѓР¶Рµ РЅРµС‡РµРіРѕ РїРѕРІСЂРµР¶РґР°С‚СЊ!</span>"
 		)
 	else
 		attacker.visible_message(
-			"<span class='warning'>[attacker] бьёт в [zone_name] [target], но там уже нечего повреждать!</span>",
-			"<span class='warning'>Вы бьёте в [zone_name], но там уже нечего повреждать!</span>"
+			"<span class='warning'>[attacker] Р±СЊС‘С‚ РІ [zone_name] [target], РЅРѕ С‚Р°Рј СѓР¶Рµ РЅРµС‡РµРіРѕ РїРѕРІСЂРµР¶РґР°С‚СЊ!</span>",
+			"<span class='warning'>Р’С‹ Р±СЊС‘С‚Рµ РІ [zone_name], РЅРѕ С‚Р°Рј СѓР¶Рµ РЅРµС‡РµРіРѕ РїРѕРІСЂРµР¶РґР°С‚СЊ!</span>"
 		)
 
-// --- СООБЩЕНИЕ ЗАЩИТЫ ---
+// --- РЎРћРћР‘Р©Р•РќРР• Р—РђР©РРўР« ---
 /proc/gurps_combat_defense_message(mob/attacker, mob/target, obj/item/weapon, defense_type)
 	if(!attacker || !target) return
 
 	switch(defense_type)
 		if("dodge")
 			attacker.visible_message(
-				"<span class='warning'>[target] уклоняется от атаки [attacker]!</span>",
-				"<span class='notice'>[target] уклонился от вашей атаки!</span>"
+				"<span class='warning'>[target] СѓРєР»РѕРЅСЏРµС‚СЃСЏ РѕС‚ Р°С‚Р°РєРё [attacker]!</span>",
+				"<span class='notice'>[target] СѓРєР»РѕРЅРёР»СЃСЏ РѕС‚ РІР°С€РµР№ Р°С‚Р°РєРё!</span>"
 			)
 		if("parry")
 			attacker.visible_message(
-				"<span class='warning'>[target] парирует удар [attacker]!</span>",
-				"<span class='notice'>[target] парировал ваш удар!</span>"
+				"<span class='warning'>[target] РїР°СЂРёСЂСѓРµС‚ СѓРґР°СЂ [attacker]!</span>",
+				"<span class='notice'>[target] РїР°СЂРёСЂРѕРІР°Р» РІР°С€ СѓРґР°СЂ!</span>"
 			)
 
-// --- КРИТИЧЕСКИЙ ПРОВАЛ ---
+// --- РљР РРўРР§Р•РЎРљРР™ РџР РћР’РђР› ---
 /proc/gurps_crit_fail_message(mob/attacker)
 	if(!attacker) return
 	attacker.visible_message(
-		"<span class='danger'><B>Критический провал! [attacker] задевает себя!</B></span>",
-		"<span class='danger'><B>КРИТИЧЕСКИЙ ПРОВАЛ! Вы задеваете себя!</B></span>"
+		"<span class='danger'><B>РљСЂРёС‚РёС‡РµСЃРєРёР№ РїСЂРѕРІР°Р»! [attacker] Р·Р°РґРµРІР°РµС‚ СЃРµР±СЏ!</B></span>",
+		"<span class='danger'><B>РљР РРўРР§Р•РЎРљРР™ РџР РћР’РђР›! Р’С‹ Р·Р°РґРµРІР°РµС‚Рµ СЃРµР±СЏ!</B></span>"
 	)
 
-// --- ОПРЕДЕЛЕНИЕ ЭФФЕКТА ПОПАДАНИЯ ---
+// --- РћРџР Р•Р”Р•Р›Р•РќРР• Р­Р¤Р¤Р•РљРўРђ РџРћРџРђР”РђРќРРЇ ---
 /proc/gurps_determine_effect(datum/organ/external/E, was_broken, was_artery, was_tendon, is_crit)
 	if(!E) return ""
 
 	if(E.destroyed)
-		return "<B>Конечность уничтожена!</B>"
+		return "<B>РљРѕРЅРµС‡РЅРѕСЃС‚СЊ СѓРЅРёС‡С‚РѕР¶РµРЅР°!</B>"
 
 	if(E.broken && !was_broken)
-		return "<B>ХРУСТЬ! Кость сломана!</B>"
+		return "<B>РҐР РЈРЎРўР¬! РљРѕСЃС‚СЊ СЃР»РѕРјР°РЅР°!</B>"
 
 	if(E.artery_cut && !was_artery)
-		return "<B>Артерия разорвана! Кровь фонтанирует!</B>"
+		return "<B>РђСЂС‚РµСЂРёСЏ СЂР°Р·РѕСЂРІР°РЅР°! РљСЂРѕРІСЊ С„РѕРЅС‚Р°РЅРёСЂСѓРµС‚!</B>"
 
 	if(E.tendon_damaged && !was_tendon)
-		return "<B>Повреждено сухожилие!</B>"
+		return "<B>РџРѕРІСЂРµР¶РґРµРЅРѕ СЃСѓС…РѕР¶РёР»РёРµ!</B>"
 
 	if(is_crit)
-		return "<B>Мощный удар!</B>"
+		return "<B>РњРѕС‰РЅС‹Р№ СѓРґР°СЂ!</B>"
 
 	return ""
 
 // ============================
-// ДОПОЛНИТЕЛЬНЫЕ ЭФФЕКТЫ
+// Р”РћРџРћР›РќРРўР•Р›Р¬РќР«Р• Р­Р¤Р¤Р•РљРўР«
 // ============================
 
 /proc/gurps_process_hit_effects(mob/living/carbon/human/target, zone, damage, dmg_type, is_crit, obj/item/weapon, mob/living/carbon/human/attacker)
@@ -284,7 +284,7 @@
 	if(!E) E = target.organs["chest"]
 	if(!E || E.destroyed) return ""
 
-	// ===== ШЕЯ/ГОРЛО =====
+	// ===== РЁР•РЇ/Р“РћР Р›Рћ =====
 	if(zone == "neck")
 		var/is_slashing = (dmg_type == DAMAGE_CUT)
 		var/is_piercing = (dmg_type == DAMAGE_PIERCE)
@@ -294,7 +294,7 @@
 			if(head && !head.destroyed)
 				head.destroyed = 1
 				head.droplimb()
-				extra_message = "<B>ГОЛОВА ОТРУБЛЕНА!</B>"
+				extra_message = "<B>Р“РћР›РћР’Рђ РћРўР РЈР‘Р›Р•РќРђ!</B>"
 				has_effect = TRUE
 				gurps_play_hit_sound(target, gurps_get_chop_sound(), 80)
 				target.death()
@@ -305,13 +305,13 @@
 			if(N && !N.artery_cut)
 				N.artery_cut = 1
 				target.bloodloss = max(target.bloodloss, 30)
-				extra_message = "<B>Сонная артерия разорвана! Кровь фонтанирует из шеи!</B>"
+				extra_message = "<B>РЎРѕРЅРЅР°СЏ Р°СЂС‚РµСЂРёСЏ СЂР°Р·РѕСЂРІР°РЅР°! РљСЂРѕРІСЊ С„РѕРЅС‚Р°РЅРёСЂСѓРµС‚ РёР· С€РµРё!</B>"
 				has_effect = TRUE
 				gurps_play_hit_sound(target, gurps_get_throat_sound(), 70)
 				gurps_play_hit_sound(target, gurps_get_artery_sound(), 70)
 				target.visible_message(
-					"<span class='danger'><B>[target] хватается за горло! Сонная артерия разорвана! Кровь фонтанирует!</B></span>",
-					"<span class='danger'><B>Ваша сонная артерия разорвана! Вы хватаетесь за горло! Кровь хлещет!</B></span>"
+					"<span class='danger'><B>[target] С…РІР°С‚Р°РµС‚СЃСЏ Р·Р° РіРѕСЂР»Рѕ! РЎРѕРЅРЅР°СЏ Р°СЂС‚РµСЂРёСЏ СЂР°Р·РѕСЂРІР°РЅР°! РљСЂРѕРІСЊ С„РѕРЅС‚Р°РЅРёСЂСѓРµС‚!</B></span>",
+					"<span class='danger'><B>Р’Р°С€Р° СЃРѕРЅРЅР°СЏ Р°СЂС‚РµСЂРёСЏ СЂР°Р·РѕСЂРІР°РЅР°! Р’С‹ С…РІР°С‚Р°РµС‚РµСЃСЊ Р·Р° РіРѕСЂР»Рѕ! РљСЂРѕРІСЊ С…Р»РµС‰РµС‚!</B></span>"
 				)
 				gurps_spawn_artery_spray(target)
 				target.losebreath += 10
@@ -319,25 +319,25 @@
 				if(prob(20)) target.emote("gasp")
 
 		if(!has_effect && damage >= 5 && prob(damage * 3.0))
-			extra_message = "<B>Удар в горло!</B>"
+			extra_message = "<B>РЈРґР°СЂ РІ РіРѕСЂР»Рѕ!</B>"
 			has_effect = TRUE
 			target.losebreath += 5
 			target.stunned = max(target.stunned, 3)
 			gurps_play_hit_sound(target, gurps_get_throat_sound(), 60)
 			target.visible_message(
-				"<span class='danger'>[target] хватается за горло, задыхаясь!</span>",
-				"<span class='danger'>Удар в горло! Вы не можете дышать!</span>"
+				"<span class='danger'>[target] С…РІР°С‚Р°РµС‚СЃСЏ Р·Р° РіРѕСЂР»Рѕ, Р·Р°РґС‹С…Р°СЏСЃСЊ!</span>",
+				"<span class='danger'>РЈРґР°СЂ РІ РіРѕСЂР»Рѕ! Р’С‹ РЅРµ РјРѕР¶РµС‚Рµ РґС‹С€Р°С‚СЊ!</span>"
 			)
 			if(prob(30)) target.emote("gasp")
 
-	// ===== УДАР В ЧЕЛЮСТЬ =====
+	// ===== РЈР”РђР  Р’ Р§Р•Р›Р®РЎРўР¬ =====
 	if(!has_effect && (zone == "face" || zone == "mouth") && damage >= 3 && attacker)
 		if(prob(damage * 5))
 			var/stun_chance = 40 + ((attacker.gurps_strength - target.gurps_strength) * 4)
 			stun_chance = max(20, min(95, stun_chance))
 
 			if(prob(stun_chance))
-				extra_message = "<B>ТОЧНЫЙ УДАР В ЧЕЛЮСТЬ! [target] ОГЛУШЕН!</B>"
+				extra_message = "<B>РўРћР§РќР«Р™ РЈР”РђР  Р’ Р§Р•Р›Р®РЎРўР¬! [target] РћР“Р›РЈРЁР•Рќ!</B>"
 				target.stunned = max(target.stunned, 10)
 				target.weakened = max(target.weakened, 5)
 				target.eye_blurry = max(target.eye_blurry, 20)
@@ -350,23 +350,23 @@
 						var/obj/item/weapon/tooth/T = new(target.loc)
 						T.add_blood(target)
 						T.throw_at(get_step(target, pick(cardinal)), 2, 1)
-					target.visible_message("<span class='danger'>Изо рта [target] вылетают зубы!</span>")
+					target.visible_message("<span class='danger'>РР·Рѕ СЂС‚Р° [target] РІС‹Р»РµС‚Р°СЋС‚ Р·СѓР±С‹!</span>")
 					target.bloodloss += teeth * 2
 
 				has_effect = TRUE
 				return extra_message
 
-	// ===== СОТРЯСЕНИЕ МОЗГА =====
+	// ===== РЎРћРўР РЇРЎР•РќРР• РњРћР—Р“Рђ =====
 	if(!has_effect && zone == "head" && damage >= 8 && prob(damage * 0.8))
-		extra_message = "<B>Сотрясение мозга!</B>"
+		extra_message = "<B>РЎРѕС‚СЂСЏСЃРµРЅРёРµ РјРѕР·РіР°!</B>"
 		has_effect = TRUE
 		target.confused = max(target.confused, 25)
 		target.eye_blurry = max(target.eye_blurry, 20)
 		if(prob(35)) target.paralysis = max(target.paralysis, 5)
 
-	// ===== КРИТИЧЕСКОЕ ПОПАДАНИЕ =====
+	// ===== РљР РРўРР§Р•РЎРљРћР• РџРћРџРђР”РђРќРР• =====
 	if(is_crit && !has_effect)
-		extra_message = "<B>КРИТИЧЕСКОЕ ПОПАДАНИЕ!</B>"
+		extra_message = "<B>РљР РРўРР§Р•РЎРљРћР• РџРћРџРђР”РђРќРР•!</B>"
 		has_effect = TRUE
 		if(damage >= 15)
 			target.weakened = max(target.weakened, 3)
@@ -377,11 +377,11 @@
 	return extra_message
 
 // ============================
-// ПРЕДМЕТ "ЗУБ"
+// РџР Р•Р”РњР•Рў "Р—РЈР‘"
 // ============================
 /obj/item/weapon/tooth
-	name = "выбитый зуб"
-	desc = "Человеческий зуб с кровью."
+	name = "РІС‹Р±РёС‚С‹Р№ Р·СѓР±"
+	desc = "Р§РµР»РѕРІРµС‡РµСЃРєРёР№ Р·СѓР± СЃ РєСЂРѕРІСЊСЋ."
 	icon = 'icons/mob/flesh/gore.dmi'
 	icon_state = "tooth1"
 	w_class = 1

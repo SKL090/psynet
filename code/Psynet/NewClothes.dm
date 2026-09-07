@@ -1,10 +1,10 @@
 // ============================
-// psynet_clothing.dm - ОДЕЖДА PSYNET (ПОЛНЫЙ ФАЙЛ)
+// psynet_clothing.dm - РћР”Р•Р–Р”Рђ PSYNET (РџРћР›РќР«Р™ Р¤РђР™Р›)
 // ============================
 
 /obj/item/clothing/psynet_uniform
 	name = "psynet clothing"
-	desc = "Одежда Psynet."
+	desc = "РћРґРµР¶РґР° Psynet."
 	icon = 'icons/obj/clothing/newuniforms.dmi'
 	icon_state = ""
 	var/icon/inventory_icon = 'icons/obj/clothing/newuniforms.dmi'
@@ -16,8 +16,8 @@
 	var/list/torn_parts = list()
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|ARMS|LEGS
 	flags = FPRINT | TABLEPASS | ONESIZEFITSALL
-	var/overlay_color = null        // Цвет верхнего слоя (RGB строка, например "#FF0000")
-	var/base_color = null           // Цвет основной одежды
+	var/overlay_color = null        // Р¦РІРµС‚ РІРµСЂС…РЅРµРіРѕ СЃР»РѕСЏ (RGB СЃС‚СЂРѕРєР°, РЅР°РїСЂРёРјРµСЂ "#FF0000")
+	var/base_color = null           // Р¦РІРµС‚ РѕСЃРЅРѕРІРЅРѕР№ РѕРґРµР¶РґС‹
 
 /obj/item/clothing/psynet_uniform/proc/apply_color_to_icon(icon/I, color)
 	if(!color) return I
@@ -46,7 +46,7 @@
 	if(part == "body")
 		return list("icon" = sprite_file, "icon_state" = "[base]_body_[state]")
 
-	// Проверка конечности — ВОТ ЭТО ВАЖНО
+	// РџСЂРѕРІРµСЂРєР° РєРѕРЅРµС‡РЅРѕСЃС‚Рё вЂ” Р’РћРў Р­РўРћ Р’РђР–РќРћ
 	var/datum/organ/external/limb = H.organs[part]
 	if(limb && limb.destroyed)
 		return null
@@ -80,59 +80,59 @@
 	switch(zone)
 		if("l_arm")
 			if(H.organs["l_arm"] && H.organs["l_arm"]:destroyed)
-				H << "<span class='warning'>У вас нет левой руки.</span>"
+				H << "<span class='warning'>РЈ РІР°СЃ РЅРµС‚ Р»РµРІРѕР№ СЂСѓРєРё.</span>"
 				return
 			if(torn_parts.Find("l_arm"))
-				H << "<span class='warning'>Левый рукав уже оторван.</span>"
+				H << "<span class='warning'>Р›РµРІС‹Р№ СЂСѓРєР°РІ СѓР¶Рµ РѕС‚РѕСЂРІР°РЅ.</span>"
 				return
 			if(sleeves_up.Find("l_arm"))
 				sleeves_up -= "l_arm"
-				H.visible_message("<span class='notice'>[H] опускает левый рукав.</span>")
+				H.visible_message("<span class='notice'>[H] РѕРїСѓСЃРєР°РµС‚ Р»РµРІС‹Р№ СЂСѓРєР°РІ.</span>")
 			else
 				sleeves_up |= "l_arm"
-				H.visible_message("<span class='notice'>[H] поднимает левый рукав.</span>")
+				H.visible_message("<span class='notice'>[H] РїРѕРґРЅРёРјР°РµС‚ Р»РµРІС‹Р№ СЂСѓРєР°РІ.</span>")
 
 		if("r_arm")
 			if(H.organs["r_arm"] && H.organs["r_arm"]:destroyed)
-				H << "<span class='warning'>У вас нет правой руки.</span>"
+				H << "<span class='warning'>РЈ РІР°СЃ РЅРµС‚ РїСЂР°РІРѕР№ СЂСѓРєРё.</span>"
 				return
 			if(torn_parts.Find("r_arm"))
-				H << "<span class='warning'>Правый рукав уже оторван.</span>"
+				H << "<span class='warning'>РџСЂР°РІС‹Р№ СЂСѓРєР°РІ СѓР¶Рµ РѕС‚РѕСЂРІР°РЅ.</span>"
 				return
 			if(sleeves_up.Find("r_arm"))
 				sleeves_up -= "r_arm"
-				H.visible_message("<span class='notice'>[H] опускает правый рукав.</span>")
+				H.visible_message("<span class='notice'>[H] РѕРїСѓСЃРєР°РµС‚ РїСЂР°РІС‹Р№ СЂСѓРєР°РІ.</span>")
 			else
 				sleeves_up |= "r_arm"
-				H.visible_message("<span class='notice'>[H] поднимает правый рукав.</span>")
+				H.visible_message("<span class='notice'>[H] РїРѕРґРЅРёРјР°РµС‚ РїСЂР°РІС‹Р№ СЂСѓРєР°РІ.</span>")
 
 		if("l_leg")
 			if(H.organs["l_leg"] && H.organs["l_leg"]:destroyed)
-				H << "<span class='warning'>У вас нет левой ноги.</span>"
+				H << "<span class='warning'>РЈ РІР°СЃ РЅРµС‚ Р»РµРІРѕР№ РЅРѕРіРё.</span>"
 				return
 			if(torn_parts.Find("l_leg"))
-				H << "<span class='warning'>Левая штанина уже оторвана.</span>"
+				H << "<span class='warning'>Р›РµРІР°СЏ С€С‚Р°РЅРёРЅР° СѓР¶Рµ РѕС‚РѕСЂРІР°РЅР°.</span>"
 				return
 			if(pants_up.Find("l_leg"))
 				pants_up -= "l_leg"
-				H.visible_message("<span class='notice'>[H] опускает левую штанину.</span>")
+				H.visible_message("<span class='notice'>[H] РѕРїСѓСЃРєР°РµС‚ Р»РµРІСѓСЋ С€С‚Р°РЅРёРЅСѓ.</span>")
 			else
 				pants_up |= "l_leg"
-				H.visible_message("<span class='notice'>[H] поднимает левую штанину.</span>")
+				H.visible_message("<span class='notice'>[H] РїРѕРґРЅРёРјР°РµС‚ Р»РµРІСѓСЋ С€С‚Р°РЅРёРЅСѓ.</span>")
 
 		if("r_leg")
 			if(H.organs["r_leg"] && H.organs["r_leg"]:destroyed)
-				H << "<span class='warning'>У вас нет правой ноги.</span>"
+				H << "<span class='warning'>РЈ РІР°СЃ РЅРµС‚ РїСЂР°РІРѕР№ РЅРѕРіРё.</span>"
 				return
 			if(torn_parts.Find("r_leg"))
-				H << "<span class='warning'>Правая штанина уже оторвана.</span>"
+				H << "<span class='warning'>РџСЂР°РІР°СЏ С€С‚Р°РЅРёРЅР° СѓР¶Рµ РѕС‚РѕСЂРІР°РЅР°.</span>"
 				return
 			if(pants_up.Find("r_leg"))
 				pants_up -= "r_leg"
-				H.visible_message("<span class='notice'>[H] опускает правую штанину.</span>")
+				H.visible_message("<span class='notice'>[H] РѕРїСѓСЃРєР°РµС‚ РїСЂР°РІСѓСЋ С€С‚Р°РЅРёРЅСѓ.</span>")
 			else
 				pants_up |= "r_leg"
-				H.visible_message("<span class='notice'>[H] поднимает правую штанину.</span>")
+				H.visible_message("<span class='notice'>[H] РїРѕРґРЅРёРјР°РµС‚ РїСЂР°РІСѓСЋ С€С‚Р°РЅРёРЅСѓ.</span>")
 
 		else return ..()
 
@@ -153,7 +153,7 @@
 			torn_parts |= "l_arm"
 			sleeves_up -= "l_arm"
 			new /obj/item/clothing/rag(H.loc)
-			H.visible_message("<span class='danger'>[H] отрывает левый рукав!</span>")
+			H.visible_message("<span class='danger'>[H] РѕС‚СЂС‹РІР°РµС‚ Р»РµРІС‹Р№ СЂСѓРєР°РІ!</span>")
 
 		if("r_arm")
 			if(H.organs["r_arm"] && H.organs["r_arm"]:destroyed) return
@@ -161,7 +161,7 @@
 			torn_parts |= "r_arm"
 			sleeves_up -= "r_arm"
 			new /obj/item/clothing/rag(H.loc)
-			H.visible_message("<span class='danger'>[H] отрывает правый рукав!</span>")
+			H.visible_message("<span class='danger'>[H] РѕС‚СЂС‹РІР°РµС‚ РїСЂР°РІС‹Р№ СЂСѓРєР°РІ!</span>")
 
 		if("l_leg")
 			if(H.organs["l_leg"] && H.organs["l_leg"]:destroyed) return
@@ -169,7 +169,7 @@
 			torn_parts |= "l_leg"
 			pants_up -= "l_leg"
 			new /obj/item/clothing/rag(H.loc)
-			H.visible_message("<span class='danger'>[H] отрывает левую штанину!</span>")
+			H.visible_message("<span class='danger'>[H] РѕС‚СЂС‹РІР°РµС‚ Р»РµРІСѓСЋ С€С‚Р°РЅРёРЅСѓ!</span>")
 
 		if("r_leg")
 			if(H.organs["r_leg"] && H.organs["r_leg"]:destroyed) return
@@ -177,21 +177,21 @@
 			torn_parts |= "r_leg"
 			pants_up -= "r_leg"
 			new /obj/item/clothing/rag(H.loc)
-			H.visible_message("<span class='danger'>[H] отрывает правую штанину!</span>")
+			H.visible_message("<span class='danger'>[H] РѕС‚СЂС‹РІР°РµС‚ РїСЂР°РІСѓСЋ С€С‚Р°РЅРёРЅСѓ!</span>")
 
 	H.update_clothing()
 
-// ===== ГОТОВАЯ ОДЕЖДА =====
+// ===== Р“РћРўРћР’РђРЇ РћР”Р•Р–Р”Рђ =====
 /obj/item/clothing/psynet_uniform/cargo
 	name = "cargo uniform"
-	desc = "Прочный комбинезон карго."
+	desc = "РџСЂРѕС‡РЅС‹Р№ РєРѕРјР±РёРЅРµР·РѕРЅ РєР°СЂРіРѕ."
 	icon_state = "zcargo"
 	inventory_state = "zcargo"
 
-//ОДЕЖДА МИГРАНТОВ!
+//РћР”Р•Р–Р”Рђ РњРР“Р РђРќРўРћР’!
 /obj/item/clothing/psynet_uniform/migrant
 	name = "migrant uniform"
-	desc = "Одежда мигранта."
+	desc = "РћРґРµР¶РґР° РјРёРіСЂР°РЅС‚Р°."
 	icon_state = "migrant"
 	inventory_state = "migrant"
 	base_color = "#4A6B8A"

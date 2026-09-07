@@ -1159,7 +1159,7 @@
 
 /obj/item/weapon/reagent_containers/food/snacks/condiment/ketchup
 	name = "ketchup"
-	desc = "Pureéd tomatoes as a sauce."
+	desc = "PurÃ©ed tomatoes as a sauce."
 	icon_state = "ketchup"
 	New()
 		..()

@@ -1,14 +1,14 @@
 // ============================
-// gurps_health.dm - ������� �������� GURPS (������������ ������)
+// gurps_health.dm - СИСТЕМА ЗДОРОВЬЯ GURPS (ИСПРАВЛЕННАЯ ВЕРСИЯ)
 // ============================
-// ������ �� ��������� ������ ������ �� neworgans.dm.
-// �������� ������ ��: ��������� ����������, ����, ��������, �������/��������� (��� �������).
+// Теперь не дублирует родные органы из neworgans.dm.
+// Отвечает только за: витальные показатели, боль, хирургию, артерии/сухожилия (как статусы).
 
 /mob/living/carbon/human
-	// ��������������� ������ ��� �������� (������� � ��������� ������ � ������� �������)
-	// ��������� ��� �������� ������������� � �������������� �����������
-	var/list/gurps_arteries = list()   // ����� ������������������ � E.artery_cut
-	var/list/gurps_tendons = list()    // ����� ������������������ � E.tendon_damaged
+	// Вспомогательные списки для хирургии (артерии и сухожилия теперь в датумах органов)
+	// Оставлены для обратной совместимости с хирургическими процедурами
+	var/list/gurps_arteries = list()   // Будет синхронизироваться с E.artery_cut
+	var/list/gurps_tendons = list()    // Будет синхронизироваться с E.tendon_damaged
 	var/list/gurps_organ_status = list()
 	var/gurps_blood_pressure = 120
 	var/gurps_heart_rate = 70
@@ -22,7 +22,7 @@
 
 /mob/living/carbon/human/New()
 	..()
-	// ������������� ��������������� ������� (���������������� � �������� �������)
+	// Инициализация вспомогательных списков (синхронизируются с датумами органов)
 	if(!gurps_arteries.len)
 		gurps_arteries = list("l_arm"=0, "r_arm"=0, "l_leg"=0, "r_leg"=0, "neck"=0)
 	if(!gurps_tendons.len)
@@ -56,7 +56,7 @@
 		if(HD.ears) gurps_organ_status["ears"] = HD.ears.status
 
 /mob/living/carbon/human/proc/gurps_sync_arteries_tendons()
-	// �������������� gurps_arteries � gurps_tendons � �������� ���������� ������� �������
+	// Синхронизирует gurps_arteries и gurps_tendons с реальным состоянием датумов органов
 	for(var/organ_name in organs)
 		var/datum/organ/external/E = organs[organ_name]
 		if(!istype(E)) continue
@@ -66,7 +66,7 @@
 		if(organ_name in gurps_tendons)
 			gurps_tendons[organ_name] = E.tendon_damaged
 
-// ---------- ����������� ������ (������������ � neworgans.dm) ----------
+// ---------- ПОВРЕЖДЕНИЕ ОРГАНА (ИСПОЛЬЗУЕТСЯ В neworgans.dm) ----------
 /mob/living/carbon/human/proc/gurps_damage_organ(organ, severity)
 	var/datum/organ/internal/I = null
 	var/datum/organ/external/chest/C = organs["chest"]
@@ -104,13 +104,13 @@
 			gurps_organ_status[organ] = "destroyed"
 
 	if(old != gurps_organ_status[organ])
-		visible_message("<span class='danger'>[organ] [src] ��������! ([gurps_organ_status[organ]])</span>")
+		visible_message("<span class='danger'>[organ] [src] повреждён! ([gurps_organ_status[organ]])</span>")
 
 	gurps_update_vitals()
 
-// ---------- ��������� ���������� ----------
+// ---------- ЖИЗНЕННЫЕ ПОКАЗАТЕЛИ ----------
 /mob/living/carbon/human/proc/gurps_update_vitals()
-	// ������
+	// Сердце
 	switch(gurps_organ_status["heart"])
 		if("healthy")
 			gurps_heart_rate = rand(60, 100)
@@ -134,7 +134,7 @@
 			gurps_blood_pressure = 0
 			death()
 
-	// ˸����
+	// Лёгкие
 	switch(gurps_organ_status["lungs"])
 		if("damaged")
 			gurps_oxygen_saturation = rand(85, 95)
@@ -149,7 +149,7 @@
 			if(prob(10))
 				death()
 
-	// ������
+	// Печень
 	switch(gurps_organ_status["liver"])
 		if("damaged")
 			gurps_toxin_level = min(100, gurps_toxin_level + 2)
@@ -162,7 +162,7 @@
 			gurps_toxin_level = min(100, gurps_toxin_level + 10)
 			toxloss += 5
 
-	// ����
+	// Мозг
 	switch(gurps_organ_status["brain"])
 		if("damaged")
 			if(prob(15))
@@ -175,19 +175,19 @@
 			paralysis = max(paralysis, 30)
 			death()
 
-	// �����
+	// Глаза
 	if(gurps_organ_status["eyes"] in list("damaged", "ruptured"))
 		eye_blurry = max(eye_blurry, 5)
 	if(gurps_organ_status["eyes"] == "destroyed")
 		blinded = 1
 
-	// ���
+	// Уши
 	if(gurps_organ_status["ears"] in list("damaged", "ruptured"))
 		ear_damage = max(ear_damage, 10)
 	if(gurps_organ_status["ears"] == "destroyed")
 		ear_deaf = 1
 
-	// �������������� ������� �������/���������
+	// Синхронизируем статусы артерий/сухожилий
 	gurps_sync_arteries_tendons()
 
 // Derived blood/shock model. bloodloss is the current wound loss rate;
@@ -207,7 +207,7 @@
 	if(gurps_shock >= 85) paralysis = max(paralysis, 5)
 	if(gurps_blood_volume <= 0) death()
 
-// ---------- ��������� � LIFE ----------
+// ---------- ОБРАБОТКА В LIFE ----------
 /mob/living/carbon/human/proc/gurps_process_health()
 	// The life loop may reach this through more than one compatibility path.
 	if(gurps_health_tick == world.time)
@@ -217,7 +217,7 @@
 	gurps_sync_arteries_tendons()
 	gurps_process_circulation()
 
-	// ��������� ���� �������
+	// Обработка всех артерий
 	for(var/organ_name in organs)
 		var/datum/organ/external/E = organs[organ_name]
 		if(!istype(E) || !E.artery_cut) continue
@@ -226,7 +226,7 @@
 		if(prob(2) && bloodloss > 50)
 			paralysis = max(paralysis, 10)
 
-	// ��������� ��������� (���������������� � ��������)
+	// Обработка сухожилий (синхронизировано с датумами)
 	for(var/t in gurps_tendons)
 		if(gurps_tendons[t] == 1)
 			if(t in list("l_arm", "r_arm", "l_hand", "r_hand"))
@@ -237,7 +237,7 @@
 				if(prob(20))
 					weakened = max(weakened, 2)
 
-	// ���������� ������ ����
+	// Обновление уровня боли
 	gurps_pain_level = 0
 	for(var/o in gurps_organ_status)
 		switch(gurps_organ_status[o])
@@ -246,54 +246,54 @@
 			if("ruptured")  gurps_pain_level += 30
 			if("destroyed") gurps_pain_level += 50
 
-	// ������� �� ������� ����
+	// Эффекты от сильной боли
 	if(gurps_pain_level > 80 && prob(10))
-		visible_message("<span class='danger'>[src] ������ �������� �� ����!</span>")
+		visible_message("<span class='danger'>[src] теряет сознание от боли!</span>")
 		paralysis = max(paralysis, 10)
 
 	if(gurps_pain_level > 50 && prob(5))
 		emote("scream")
 		weakened = max(weakened, 2)
 
-// ---------- ���� (���������� �� neworgans.dm) ----------
-// ��� ������� �������������� ������� /mob/proc/pain() �� life.dm
+// ---------- БОЛЬ (ВЫЗЫВАЕТСЯ ИЗ neworgans.dm) ----------
+// Эта функция ПЕРЕОПРЕДЕЛЯЕТ базовую /mob/proc/pain() из life.dm
 /mob/living/carbon/human/pain(var/partname, var/amount, var/force = 0)
 	if(stat >= 1)
 		return
 	if(nodamage)
 		return
 
-	// ���������� ����
+	// Накопление боли
 	if(force)
 		gurps_pain_level += amount
 	else
 		gurps_pain_level += amount / 2
 
-	// ��������� � ����
+	// Сообщения о боли
 	if(world.time < next_pain_time && !force)
 		return
 
 	var/msg
 	switch(amount)
 		if(1 to 10)
-			msg = "<b>��� [partname] ���������� ����������."
+			msg = "<b>Моя [partname] немножечко побаливает."
 		if(11 to 90)
 			flash_weak_pain()
 			msg = "<b><font size=1>Ouch! Your [partname] hurts."
 		if(91 to 10000)
 			flash_pain()
-			msg = "<b><font size=3>����� ����� ����! ��� [partname]"
+			msg = "<b><font size=3>КАКАЯ ДИКАЯ БОЛЬ! Моя [partname]"
 
 	if(msg && (msg != last_pain_message || prob(10)))
 		last_pain_message = msg
 		src << msg
 	next_pain_time = world.time + max(10, 100 - amount)
 
-	// ������� �� ������� ����
+	// Реакция на сильную боль
 	if(amount > 30 && force)
 		emote("scream")
 
-// ---------- �������� ----------
+// ---------- ХИРУРГИЯ ----------
 /mob/living/carbon/human/proc/gurps_surgery_fix_organ(organ)
 	if(gurps_organ_status[organ] && gurps_organ_status[organ] != "healthy")
 		gurps_organ_status[organ] = "healthy"
@@ -326,12 +326,12 @@
 					V.intestines.status = "healthy"
 
 		gurps_update_vitals()
-		visible_message("<span class='notice'>[organ] [src] ������������.</span>")
+		visible_message("<span class='notice'>[organ] [src] восстановлен.</span>")
 		return TRUE
 	return FALSE
 
 /mob/living/carbon/human/proc/gurps_surgery_fix_artery(zone)
-	// �������������� ����� ���������
+	// Синхронизируем перед проверкой
 	gurps_sync_arteries_tendons()
 
 	var/datum/organ/external/E = organs[zone]
@@ -340,23 +340,23 @@
 		E.gurps_stump_bleeding = FALSE
 		gurps_arteries[zone] = 0
 		bloodloss = max(0, bloodloss - 10)
-		visible_message("<span class='notice'>������������ [zone] [src] �����������.</span>")
+		visible_message("<span class='notice'>Кровотечение [zone] [src] остановлено.</span>")
 		update_clothing()
 		return TRUE
 	return FALSE
 
 /mob/living/carbon/human/proc/gurps_surgery_fix_tendon(zone)
-	// �������������� ����� ���������
+	// Синхронизируем перед проверкой
 	gurps_sync_arteries_tendons()
 
 	if(gurps_tendons[zone] == 1)
-		// ���������� � ������ ������
+		// Исправляем в датуме органа
 		var/datum/organ/external/E = organs[zone]
 		if(E && istype(E))
 			E.tendon_damaged = 0
 
 		gurps_tendons[zone] = 0
-		visible_message("<span class='notice'>��������� [zone] [src] �����.</span>")
+		visible_message("<span class='notice'>Сухожилия [zone] [src] сшиты.</span>")
 		return TRUE
 	return FALSE
 
@@ -366,64 +366,64 @@
 		return FALSE
 
 	if(E.broken)
-		// ����� �������
+		// Лечим перелом
 		E.broken = 0
 		E.perma_injury = 0
 		E.min_broken_damage = initial(E.min_broken_damage)
 
-		// ��������������� ����� �������� ����������
+		// Восстанавливаем часть здоровья конечности
 		E.brute_dam = max(0, E.brute_dam - 30)
 
-		visible_message("<span class='notice'>����� � [E.display_name] [src] ���������.</span>")
+		visible_message("<span class='notice'>Кость в [E.display_name] [src] вправлена.</span>")
 		UpdateDamageIcon()
 		updatehealth()
 		return TRUE
 	return FALSE
 
 // ============================
-// ����������� (��� ����������� ��������)
+// ДИАГНОСТИКА (ДЛЯ МЕДИЦИНСКИХ ПРИБОРОВ)
 // ============================
 /mob/living/carbon/human/proc/gurps_diagnose()
 	var/list/report = list()
 
-	report += "=== ����������� ��ר� ==="
-	report += "�������: [real_name]"
+	report += "=== МЕДИЦИНСКИЙ ОТЧЁТ ==="
+	report += "Пациент: [real_name]"
 	report += ""
-	report += "--- ��������� ���������� ---"
-	report += "�����: [gurps_heart_rate] BPM"
-	report += "��������: [gurps_blood_pressure]/80"
-	report += "���������: [gurps_oxygen_saturation]%"
-	report += "�������: [gurps_toxin_level]%"
-	report += "������� ����: [gurps_pain_level]"
-	report += "�����������: [bloodloss] ��"
+	report += "--- ВИТАЛЬНЫЕ ПОКАЗАТЕЛИ ---"
+	report += "Пульс: [gurps_heart_rate] BPM"
+	report += "Давление: [gurps_blood_pressure]/80"
+	report += "Сатурация: [gurps_oxygen_saturation]%"
+	report += "Токсины: [gurps_toxin_level]%"
+	report += "Уровень боли: [gurps_pain_level]"
+	report += "Кровопотеря: [bloodloss] мл"
 	report += ""
-	report += "--- ������ ������� ---"
+	report += "--- СТАТУС ОРГАНОВ ---"
 	for(var/o in gurps_organ_status)
 		report += "[o]: [gurps_organ_status[o]]"
 
 	report += ""
-	report += "--- ����������� ����������� ---"
+	report += "--- ПОВРЕЖДЕНИЯ КОНЕЧНОСТЕЙ ---"
 	gurps_sync_arteries_tendons()
 
 	for(var/organ_name in organs)
 		var/datum/organ/external/E = organs[organ_name]
 		if(!istype(E)) continue
 
-		var/status = "������"
+		var/status = "Здоров"
 		if(E.destroyed)
-			status = "���������"
+			status = "УНИЧТОЖЕН"
 		else if(E.broken)
-			status = "������"
+			status = "СЛОМАН"
 		else if(E.brute_dam > E.max_damage * 0.5)
-			status = "������ ��������"
+			status = "Сильно повреждён"
 		else if(E.brute_dam > E.max_damage * 0.25)
-			status = "��������"
+			status = "Повреждён"
 
 		var/add_info = ""
 		if(E.artery_cut)
-			add_info += " ������� ���������"
+			add_info += " АРТЕРИЯ РАЗОРВАНА"
 		if(E.tendon_damaged)
-			add_info += " ��������� ����������"
+			add_info += " СУХОЖИЛИЯ ПОВРЕЖДЕНЫ"
 
 		report += "[E.display_name]: [status][add_info] (HP: [E.max_damage - E.brute_dam]/[E.max_damage])"
 
