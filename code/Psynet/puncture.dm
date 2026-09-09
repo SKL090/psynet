@@ -4,9 +4,10 @@
 // 1bullet_* - средняя колотая рана, 2bullet_* - глубокая (по урону).
 // bullet_* - лёгкая колотая рана.
 // obullet_* - рана без кровотечения (кончилась кровь или смерть). НЕ трогать.
-// ВНИМАНИЕ: арт стоячих ран нарисован только в bullet/1/2bullet_south (кадры
-// на все 4 направления); bullet/1/2bullet_north/east/west - пустые стейты, а
-// obullet_lying не существует. Не выбирать их напрямую (см. ниже).
+// ВНИМАНИЕ: в woundsplus.dmi для стоячего тела у каждого направления
+// свой стейт: bullet/1/2bullet_south, *_north, *_east и *_west. В каждом
+// стейте заполнено только соответствующее направление DMI, поэтому нельзя
+// всегда использовать *_south — иначе рана исчезает при повороте.
 // ============================
 
 #define PUNCTURE_LIGHT 1
@@ -63,6 +64,13 @@ var/puncture_art_ay = 7
 	spawn(0)
 		puncture_build_anchors_sync()
 		puncture_building = 0
+		// The first wound can be created while the table is being built.
+		// Rebuild those overlays after the asynchronous scan finishes;
+		// otherwise the first update leaves the wound invisible until some
+		// unrelated clothing change happens.
+		for(var/mob/living/carbon/human/H in world)
+			if(H)
+				H.update_puncture_overlays()
 
 /proc/puncture_find_art_anchor()
 	var/icon/art = new /icon(puncture_dmi, "1bullet_south", SOUTH, 1)
@@ -205,24 +213,20 @@ var/puncture_art_ay = 7
 			if(!prefix)
 				continue
 			var/wstate
-			// ВАЖНО: в woundsplus.dmi арт стоячих ран есть только в стейтах
-			// bullet_south/1bullet_south/2bullet_south — у каждого по кадру
-			// на все 4 направления. Стейты *_north/east/west полностью
-			// пустые: выбрав их, оверлей рисует прозрачный кадр и рана
-			// "исчезает", пока персонаж не встанет лицом на юг. Поэтому
-			// всегда берём *_south, а реальный dir передаём в image() —
-			// BYOND сам возьмёт нужный кадр.
 			if(is_lying)
-				// Стейта obullet_lying в DMI нет: у лежачих без крови
-				// (трупы, обескровленные) показываем обычный lying-стейт,
-				// иначе раны на теле полностью пропадают.
+				// У лежачего тела один общий стейт, направление ему не нужно.
+				// Стейта obullet_lying в DMI нет: даже у лежачих без крови
+				// показываем обычный lying-стейт, чтобы рана не пропадала.
 				wstate = "[prefix]_lying"
 			else if(no_blood)
 				// obullet_south/north/east/west — по одному кадру в "своём"
 				// направлении, так что тут выбор по dir работает.
 				wstate = "obullet_[dtext]"
 			else
-				wstate = "[prefix]_south"
+				// Важно выбирать стейт по текущему направлению. Внутри каждого
+				// bullet_* стейта заполнено только это направление; если брать
+				// всегда bullet_south, север/восток/запад дают прозрачный кадр.
+				wstate = "[prefix]_[dtext]"
 			var/image/I = image(puncture_dmi, null, wstate, base_layer + 0.7, d)
 			I.pixel_x = a[1] - puncture_art_ax + W.puncture_jx
 			I.pixel_y = a[2] - puncture_art_ay + W.puncture_jy
