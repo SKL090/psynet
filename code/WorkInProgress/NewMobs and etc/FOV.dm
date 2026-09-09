@@ -53,18 +53,20 @@
 //   for(var/mob/M in oview(src)) M.update_vision_cone()
 //   update_vision_cone()
 /mob/living/Move()
+	var/old_dir = dir
 	. = ..()
 	if(.)
 		for(var/mob/M in oview(src))
 			if(M.client)
 				M.update_fov()
+	// BYOND может повернуть моба даже при неудачном шаге.
+	if(. || dir != old_dir)
 		update_fov()
 
-// Поворот: dir у атома меняется только через set_dir(), поэтому
-// один хук ловит все повороты (клик-движение, перетаскивание и т.д.).
-// Аналог /mob/living/set_dir() из IS12.
-/mob/living/carbon/human/set_dir()
-	..()
+// Явные повороты через /mob/proc/set_dir(new_dir).
+// Движение BYOND меняет dir напрямую и обрабатывается выше в Move().
+/mob/living/carbon/human/set_dir(new_dir)
+	. = ..(new_dir)
 	if(fov_enabled)
 		gurps_fov_apply()
 
