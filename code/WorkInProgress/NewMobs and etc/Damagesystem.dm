@@ -465,7 +465,10 @@
 				var/datum/organ/external/temp = organ
 				if(temp.destroyed)
 					return
-				temp.take_damage(d, 0, 0, DAMAGE_PIERCE, 0)
+				// Projectile dir is its travel direction; the wound records the
+				// side it came from, so reverse it for the impact direction.
+				var/hit_dir = A ? turn(A.dir, 180) : dir
+				temp.take_damage(d, 0, 0, DAMAGE_PIERCE, 0, hit_dir)
 				UpdateDamageIcon()
 				updatehealth()
 				if (prob(50))

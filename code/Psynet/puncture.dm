@@ -4,10 +4,9 @@
 // 1bullet_* - средняя колотая рана, 2bullet_* - глубокая (по урону).
 // bullet_* - лёгкая колотая рана.
 // obullet_* - рана без кровотечения (кончилась кровь или смерть). НЕ трогать.
-// ВНИМАНИЕ: в woundsplus.dmi для стоячего тела у каждого направления
-// свой стейт: bullet/1/2bullet_south, *_north, *_east и *_west. В каждом
-// стейте заполнено только соответствующее направление DMI, поэтому нельзя
-// всегда использовать *_south — иначе рана исчезает при повороте.
+// ВНИМАНИЕ: суффикс south/north/east/west — это направление, ОТКУДА
+// пришёл удар, а не направление взгляда пострадавшего. Каждая рана хранит
+// своё направление; при повороте персонажа оно не должно меняться.
 // ============================
 
 #define PUNCTURE_LIGHT 1
@@ -48,6 +47,7 @@ var/puncture_art_ay = 7
 
 /datum/organ/external/wound
 	var/puncture_level = 0	// 0 - не колотая, 1 - лёгкая, 2 - средняя, 3 - глубокая
+	var/puncture_dir = 0	// направление, откуда пришёл именно этот удар
 	var/puncture_jx = 0	// разброс оверлея, чтобы раны в одной зоне не слипались
 	var/puncture_jy = 0
 
@@ -157,13 +157,19 @@ var/puncture_art_ay = 7
 	return puncture_anchors["[state]/[facing]/[zone]"]
 
 // ---------- СОЗДАНИЕ РАНЫ ----------
-/datum/organ/external/proc/create_puncture(brute)
+/datum/organ/external/proc/create_puncture(brute, hit_dir = 0)
 	if(!owner || !ishuman(owner))
 		return
 	if(destroyed)
 		return
 	var/datum/organ/external/wound/W = new(src)
 	W.bleeding = 1
+	// hit_dir is the direction from the victim towards the attacker/projectile
+	// source. Keep it on the wound: later turns must not rewrite old wounds.
+	if(hit_dir)
+		W.puncture_dir = puncture_cardinal_dir(hit_dir)
+	else
+		W.puncture_dir = puncture_cardinal_dir(owner.dir)
 	if(brute >= PUNCTURE_DEEP_DAMAGE)
 		W.puncture_level = PUNCTURE_DEEP
 	else if(brute >= PUNCTURE_MEDIUM_DAMAGE)
@@ -190,8 +196,9 @@ var/puncture_art_ay = 7
 	if(!puncture_anchors)
 		return
 	var/state = puncture_bodymask_state()
-	var/d = puncture_cardinal_dir(dir)
-	var/dtext = puncture_dir_text(d)
+	// The body anchor follows the victim's current pose/facing. The wound
+	// sprite direction below is deliberately independent and belongs to W.
+	var/body_dir = puncture_cardinal_dir(dir)
 	var/no_blood = puncture_no_blood()
 	var/is_lying = lying ? 1 : 0
 	var/base_layer = is_lying ? (MOB_LAYER - 1) : MOB_LAYER
@@ -203,7 +210,7 @@ var/puncture_art_ay = 7
 			continue
 		if(!(zone in puncture_zone_colors))
 			continue
-		var/list/a = puncture_anchor(state, d, zone, is_lying)
+		var/list/a = puncture_anchor(state, body_dir, zone, is_lying)
 		if(!a || a.len < 2)
 			continue
 		for(var/datum/organ/external/wound/W in O.wounds)
@@ -212,6 +219,10 @@ var/puncture_art_ay = 7
 			var/prefix = puncture_state_prefix[W.puncture_level]
 			if(!prefix)
 				continue
+			// Do not replace this with body_dir: two wounds on one body part
+			// may have arrived from different sides and must keep their own art.
+			var/hit_dir = W.puncture_dir ? puncture_cardinal_dir(W.puncture_dir) : body_dir
+			var/hit_dtext = puncture_dir_text(hit_dir)
 			var/wstate
 			if(is_lying)
 				// У лежачего тела один общий стейт, направление ему не нужно.
@@ -219,15 +230,11 @@ var/puncture_art_ay = 7
 				// показываем обычный lying-стейт, чтобы рана не пропадала.
 				wstate = "[prefix]_lying"
 			else if(no_blood)
-				// obullet_south/north/east/west — по одному кадру в "своём"
-				// направлении, так что тут выбор по dir работает.
-				wstate = "obullet_[dtext]"
+				// Направление obullet также принадлежит этой конкретной ране.
+				wstate = "obullet_[hit_dtext]"
 			else
-				// Важно выбирать стейт по текущему направлению. Внутри каждого
-				// bullet_* стейта заполнено только это направление; если брать
-				// всегда bullet_south, север/восток/запад дают прозрачный кадр.
-				wstate = "[prefix]_[dtext]"
-			var/image/I = image(puncture_dmi, null, wstate, base_layer + 0.7, d)
+				wstate = "[prefix]_[hit_dtext]"
+			var/image/I = image(puncture_dmi, null, wstate, base_layer + 0.7, hit_dir)
 			I.pixel_x = a[1] - puncture_art_ax + W.puncture_jx
 			I.pixel_y = a[2] - puncture_art_ay + W.puncture_jy
 			overlays += I

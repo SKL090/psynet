@@ -521,7 +521,7 @@
 		return H.gurps_strength / 2
 	return INFINITY
 
-/datum/organ/external/proc/take_damage(brute, burn, slash = 0, dmg_type = DAMAGE_CRUSH, supbrute = 0)
+/datum/organ/external/proc/take_damage(brute, burn, slash = 0, dmg_type = DAMAGE_CRUSH, supbrute = 0, hit_dir = 0)
 	if ((brute <= 0 && burn <= 0))
 		return 0
 	if(destroyed)
@@ -827,7 +827,7 @@
 	// Каждый колющий удар оставляет отслеживаемую рану.
 	// Уровень (лёгкая/глубокая) зависит от нанесённого урона.
 	if(dmg_type == DAMAGE_PIERCE && brute >= 1 && owner && ishuman(owner) && !destroyed)
-		create_puncture(brute)
+		create_puncture(brute, hit_dir)
 
 	if(broken && owner && !destroyed)
 		owner.emote("scream")
