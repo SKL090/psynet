@@ -19,6 +19,11 @@
 	var/list/wounds = list()
 	var/damage_state = "00"
 	var/brute_dam = 0
+	// Часть brute_dam, нанесённая колющим уроном (DAMAGE_PIERCE). Она НЕ
+	// должна отражаться на спрайтах dam_human/dam_female - для колотых ран
+	// есть отдельные оверлеи (puncture.dm). Режущий и тупой урон влияют
+	// на dam_human как раньше.
+	var/pierce_dam = 0
 	var/burn_dam = 0
 	var/slash_dam = 0
 	var/bandaged = 0
@@ -568,6 +573,7 @@
 					return
 
 	// ПРИМЕНЕНИЕ УРОНА
+	var/brute_before_apply = brute_dam
 	if ((brute_dam + burn_dam + brute + burn) < max_damage)
 		brute_dam += brute
 		burn_dam += burn
@@ -589,6 +595,11 @@
 					burn_dam += burn
 		else
 			return 0
+
+	// Колющий урон: запоминаем, сколько из текущего brute_dam нанесено
+	// именно им, чтобы damage_state (dam_human) его не учитывал.
+	if(dmg_type == DAMAGE_PIERCE)
+		pierce_dam = min(brute_dam, pierce_dam + (brute_dam - brute_before_apply))
 
 	// ===== АРТЕРИИ (режущее и колющее) =====
 	// At sufficient accumulated cutting/piercing injury, HT decides whether an
@@ -826,6 +837,8 @@
 // ---------- HEAL_DAMAGE ----------
 /datum/organ/external/proc/heal_damage(brute, burn, var/internal = 0)
 	brute_dam = max(0, brute_dam - brute)
+	// Лечение снимает и колющую часть урона; pierce_dam не может превышать brute_dam.
+	pierce_dam = min(pierce_dam, brute_dam)
 	burn_dam = max(0, burn_dam - burn)
 	if(internal)
 		broken = 0
@@ -863,11 +876,14 @@
 		tburn = 2
 	else
 		tburn = 3
-	if (brute_dam == 0)
+	// Колющий урон (pierce_dam) не отображается на dam_human: у него свои
+	// оверлеи (puncture.dm). Режущий и тупой урон влияют как раньше.
+	var/effective_brute = max(0, brute_dam - pierce_dam)
+	if (effective_brute == 0)
 		tbrute = 0
-	else if (brute_dam < (max_damage * 0.25 / 2))
+	else if (effective_brute < (max_damage * 0.25 / 2))
 		tbrute = 1
-	else if (brute_dam < (max_damage * 0.75 / 2))
+	else if (effective_brute < (max_damage * 0.75 / 2))
 		tbrute = 2
 	else
 		tbrute = 3

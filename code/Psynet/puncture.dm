@@ -1,14 +1,23 @@
 // ============================
 // puncture.dm - КОЛОТЫЕ РАНЫ (WoundsPlus)
 // Трекинг колотых ран с привязкой к зонам bodymask из woundsplus.dmi.
-// 1bullet_* - лёгкая колотая рана, 2bullet_* - глубокая (по урону).
-// obullet_* - рана без кровотечения (кончилась кровь или смерть).
-// Стейт bullet_ БЕЗ цифры не используется.
+// 1bullet_* - средняя колотая рана, 2bullet_* - глубокая (по урону).
+// bullet_* - лёгкая колотая рана.
+// obullet_* - рана без кровотечения (кончилась кровь или смерть). НЕ трогать.
+// ВНИМАНИЕ: арт стоячих ран нарисован только в bullet/1/2bullet_south (кадры
+// на все 4 направления); bullet/1/2bullet_north/east/west - пустые стейты, а
+// obullet_lying не существует. Не выбирать их напрямую (см. ниже).
 // ============================
 
 #define PUNCTURE_LIGHT 1
-#define PUNCTURE_DEEP 2
+#define PUNCTURE_MEDIUM 2
+#define PUNCTURE_DEEP 3
+#define PUNCTURE_MEDIUM_DAMAGE 5	// brute >= этого = средняя колотая рана
 #define PUNCTURE_DEEP_DAMAGE 10	// brute >= этого = глубокая колотая рана
+
+// Уровень раны (puncture_level) -> префикс стейта в woundsplus.dmi.
+// bullet - лёгкая, 1bullet - средняя, 2bullet - глубокая.
+var/list/puncture_state_prefix = list("bullet", "1bullet", "2bullet")
 
 var/puncture_dmi = 'icons/mob/woundsplus.dmi'
 
@@ -37,7 +46,7 @@ var/puncture_art_ax = 2
 var/puncture_art_ay = 7
 
 /datum/organ/external/wound
-	var/puncture_level = 0	// 0 - не колотая, 1 - лёгкая, 2 - глубокая
+	var/puncture_level = 0	// 0 - не колотая, 1 - лёгкая, 2 - средняя, 3 - глубокая
 	var/puncture_jx = 0	// разброс оверлея, чтобы раны в одной зоне не слипались
 	var/puncture_jy = 0
 
@@ -149,6 +158,8 @@ var/puncture_art_ay = 7
 	W.bleeding = 1
 	if(brute >= PUNCTURE_DEEP_DAMAGE)
 		W.puncture_level = PUNCTURE_DEEP
+	else if(brute >= PUNCTURE_MEDIUM_DAMAGE)
+		W.puncture_level = PUNCTURE_MEDIUM
 	else
 		W.puncture_level = PUNCTURE_LIGHT
 	W.wound_size = max(1, round(brute / 5))
@@ -190,13 +201,28 @@ var/puncture_art_ay = 7
 		for(var/datum/organ/external/wound/W in O.wounds)
 			if(!W.puncture_level)
 				continue
+			var/prefix = puncture_state_prefix[W.puncture_level]
+			if(!prefix)
+				continue
 			var/wstate
-			if(no_blood)
+			// ВАЖНО: в woundsplus.dmi арт стоячих ран есть только в стейтах
+			// bullet_south/1bullet_south/2bullet_south — у каждого по кадру
+			// на все 4 направления. Стейты *_north/east/west полностью
+			// пустые: выбрав их, оверлей рисует прозрачный кадр и рана
+			// "исчезает", пока персонаж не встанет лицом на юг. Поэтому
+			// всегда берём *_south, а реальный dir передаём в image() —
+			// BYOND сам возьмёт нужный кадр.
+			if(is_lying)
+				// Стейта obullet_lying в DMI нет: у лежачих без крови
+				// (трупы, обескровленные) показываем обычный lying-стейт,
+				// иначе раны на теле полностью пропадают.
+				wstate = "[prefix]_lying"
+			else if(no_blood)
+				// obullet_south/north/east/west — по одному кадру в "своём"
+				// направлении, так что тут выбор по dir работает.
 				wstate = "obullet_[dtext]"
-			else if(is_lying)
-				wstate = "[W.puncture_level]bullet_lying"
 			else
-				wstate = "[W.puncture_level]bullet_[dtext]"
+				wstate = "[prefix]_south"
 			var/image/I = image(puncture_dmi, null, wstate, base_layer + 0.7, d)
 			I.pixel_x = a[1] - puncture_art_ax + W.puncture_jx
 			I.pixel_y = a[2] - puncture_art_ay + W.puncture_jy
