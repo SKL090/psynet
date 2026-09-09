@@ -120,6 +120,12 @@
 			usr << "\red У [t_him] отсутствует [temp.display_name]."
 		if(temp.wounds)
 			for(var/datum/organ/external/wound/w in temp.wounds)
+				if(w.puncture_level == PUNCTURE_LIGHT)
+					usr << "\red На [t_his] [temp.display_name] колотая рана[w.bleeding ? ", из неё течёт кровь" : ""]."
+					continue
+				if(w.puncture_level == PUNCTURE_DEEP)
+					usr << "\red На [t_his] [temp.display_name] глубокая колотая рана[w.bleeding ? ", из неё сильно течёт кровь" : ""]."
+					continue
 				var/size = w.wound_size
 				var/sizetext
 				switch(size)

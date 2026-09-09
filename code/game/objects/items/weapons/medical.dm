@@ -22,6 +22,7 @@ MEDICAL
 		for(var/datum/organ/external/wound/W in temp.wounds)
 			if(W.bleeding)
 				W.stopbleeding()
+				MS.update_puncture_overlays()
 				stoped = 0
 				break
 		if(!stoped)

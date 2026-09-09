@@ -443,12 +443,12 @@
 				var/datum/organ/external/temp = organ
 				if(temp.destroyed)
 					return
-				temp.take_damage(d, 0)
-			UpdateDamageIcon()
-			updatehealth()
-			if (prob(50))
-				if(weakened <= 5)	weakened = 5
-		return
+				temp.take_damage(d, 0, 0, DAMAGE_PIERCE, 0)
+				UpdateDamageIcon()
+				updatehealth()
+				if (prob(50))
+					if(weakened <= 5)	weakened = 5
+			return
 
 	else if (flag == PROJECTILE_TASER)
 		if(zombie) return
@@ -1384,6 +1384,8 @@
 	last_b_state = stat
 	if(mutantrace && !lying)
 		overlays += image("icon" = 'icons/effects/genetics.dmi', "icon_state" = "[mutantrace]_t", "layer" = body_layer)
+
+	update_puncture_overlays()
 
 // ============================
 // АТАКИ РУКОЙ И ОРУЖИЕМ
