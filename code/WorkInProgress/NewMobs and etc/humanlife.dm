@@ -359,20 +359,16 @@
 						bloodloss++
 
 	if(stat < 2)
-		var/amt = vessel.get_reagent_amount("blood")
-		var/lol = round(amt)
 		if(bloodloss)
 			drip(bloodloss)
-		if(!lol)
+		var/blood_amount = round(vessel.get_reagent_amount("blood"))
+		// Update pallor at every blood level, including sudden severe blood loss.
+		var/pallor_changed = updatepale(blood_amount <= 448)
+		if(!blood_amount)
 			bloodloss = 0
-		else if(lol > 448)
-			if(pale)
-				pale = 0
-				updatepale()
-		else if(lol <= 448 && lol > 336)
-			if(!pale)
-				updatepale()
-				pale = 1
+
+		if(blood_amount <= 448 && blood_amount > 336)
+			if(pallor_changed)
 				var/word = pick("dizzy","woosey","faint")
 				src << "\red You feel [word]"
 			if(prob(1))
@@ -382,23 +378,20 @@
 			eye_blurry = max(eye_blurry, 2)
 			if(prob(10))
 				dizziness = max(dizziness, 10)
-		else if(lol <= 336 && lol > 244)
-			if(!pale)
-				updatepale()
-				pale = 1
+		else if(blood_amount <= 336 && blood_amount > 244)
 			eye_blurry += 6
 			// GURPS: сильное головокружение
 			dizziness = max(dizziness, 20)
 			if(prob(15))
 				paralysis += rand(1,3)
-		else if(lol <= 244 && lol > 122)
+		else if(blood_amount <= 244 && blood_amount > 122)
 			// GURPS: почти потеря сознания от кровопотери
 			eye_blurry = max(eye_blurry, 15)
 			dizziness = max(dizziness, 50)
 			confused = max(confused, 10)
 			if(toxloss <= 100)
 				toxloss = 100
-		else if(lol <= 122)
+		else if(blood_amount <= 122)
 			death()
 			src.unlock_medal("We're all sold out on blood", 0, "You bled to death..", "easy")
 
@@ -522,14 +515,16 @@
 	else
 		client.eye = client.mob
 
-/mob/living/carbon/human/proc/updatepale()
-	if(!pale)
-		stand_icon.Blend(rgb(100,100,100))
-		lying_icon.Blend(rgb(100,100,100))
-		pale = 1
-	else
-		update_body()
-		pale = 0
+/mob/living/carbon/human/proc/updatepale(new_pale)
+	new_pale = !!new_pale
+	if(pale == new_pale)
+		return FALSE
+
+	// Set the desired state before rebuilding; never tint an already tinted icon.
+	pale = new_pale
+	update_body()
+	update_clothing()
+	return TRUE
 
 /mob/living/carbon/human/handle_disabilities()
 	if(stat == 2) return
