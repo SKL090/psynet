@@ -44,11 +44,6 @@ var/puncture_building = 0
 // Пиксель-ранка внутри арта раны (ищем #970004 в 1bullet_south, fallback ниже).
 var/puncture_art_ax = 2
 var/puncture_art_ay = 7
-// bullet_* states contain a four-frame bleeding animation. A wound overlay
-// is rebuilt together with clothing, so playing that state directly would
-// restart the animation and make the persistent wound flash. Keep frame 1,
-// the stable injury mark, for the persistent overlay.
-var/puncture_art_frame = 1
 
 /datum/organ/external/wound
 	var/puncture_level = 0	// 0 - не колотая, 1 - лёгкая, 2 - средняя, 3 - глубокая
@@ -56,7 +51,19 @@ var/puncture_art_frame = 1
 	var/puncture_jx = 0	// разброс оверлея, чтобы раны в одной зоне не слипались
 	var/puncture_jy = 0
 
-/mob/living/carbon/human/var/list/puncture_images = list()
+/mob/living/carbon/human/var/list/puncture_overlay_objects = list()
+
+// Animated DMI states do not play reliably when used as atom overlays.
+// A vis_contents object is a real atom, so BYOND can advance its animation
+// without update_clothing() restarting it.
+/obj/effects/puncture_overlay
+	name = "puncture wound"
+	icon = 'icons/mob/woundsplus.dmi'
+	anchored = 1
+	density = 0
+	mouse_opacity = 0
+	var/datum/organ/external/wound/puncture_wound
+	var/puncture_visual_key
 
 // ---------- ПОСТРОЕНИЕ ТАБЛИЦЫ ЯКОРЕЙ ----------
 // Один раз сканируем bodymask каждого типа тела и направления,
@@ -192,11 +199,17 @@ var/puncture_art_frame = 1
 
 // ---------- ОТРИСОВКА ----------
 // Безопасно вызывать отдельно и в конце update_clothing().
-// Старые оверлеи снимаются, новые строятся из предрассчитанных якорей.
+// Визуальные объекты заменяются только при изменении самой раны или её
+// DMI-состояния; обычное обновление одежды и поворот лишь меняют положение
+// уже существующего объекта, поэтому его native DMI-анимация не сбивается.
+/mob/living/carbon/human/proc/remove_puncture_overlay(obj/effects/puncture_overlay/I)
+	if(!I)
+		return
+	vis_contents -= I
+	puncture_overlay_objects -= I
+	del(I)
+
 /mob/living/carbon/human/proc/update_puncture_overlays()
-	if(puncture_images && puncture_images.len)
-		overlays -= puncture_images
-		puncture_images.Cut()
 	puncture_ensure_anchors()
 	if(!puncture_anchors)
 		return
@@ -207,22 +220,44 @@ var/puncture_art_frame = 1
 	var/no_blood = puncture_no_blood()
 	var/is_lying = lying ? 1 : 0
 	var/base_layer = is_lying ? (MOB_LAYER - 1) : MOB_LAYER
+
+	// Remove only wounds which no longer exist. Existing wound objects remain
+	// in vis_contents, so update_clothing() cannot restart their animation.
+	var/list/active_wounds = list()
 	for(var/zone in organs)
 		var/datum/organ/external/O = organs[zone]
-		if(!istype(O) || O.destroyed)
+		if(!istype(O) || O.destroyed || !O.wounds || !O.wounds.len)
 			continue
-		if(!O.wounds || !O.wounds.len)
+		if(!(zone in puncture_zone_colors))
+			continue
+		for(var/datum/organ/external/wound/W in O.wounds)
+			if(W.puncture_level)
+				active_wounds += W
+	for(var/obj/effects/puncture_overlay/existing in puncture_overlay_objects.Copy())
+		if(!(existing.puncture_wound in active_wounds))
+			remove_puncture_overlay(existing)
+
+	for(var/zone in organs)
+		var/datum/organ/external/O = organs[zone]
+		if(!istype(O) || O.destroyed || !O.wounds || !O.wounds.len)
 			continue
 		if(!(zone in puncture_zone_colors))
 			continue
 		var/list/a = puncture_anchor(state, body_dir, zone, is_lying)
-		if(!a || a.len < 2)
-			continue
 		for(var/datum/organ/external/wound/W in O.wounds)
 			if(!W.puncture_level)
 				continue
 			var/prefix = puncture_state_prefix[W.puncture_level]
 			if(!prefix)
+				continue
+			var/obj/effects/puncture_overlay/I
+			if(!a || a.len < 2)
+				// The old object must not remain at the previous body position if
+				// this body type has no anchor for the zone.
+				for(var/obj/effects/puncture_overlay/candidate in puncture_overlay_objects)
+					if(candidate.puncture_wound == W)
+						remove_puncture_overlay(candidate)
+						break
 				continue
 			// Do not replace this with body_dir: two wounds on one body part
 			// may have arrived from different sides and must keep their own art.
@@ -239,12 +274,28 @@ var/puncture_art_frame = 1
 				wstate = "obullet_[hit_dtext]"
 			else
 				wstate = "[prefix]_[hit_dtext]"
-			// Freeze the wound marker on the first frame. The remaining DMI
-			// frames are a short blood-trail animation, not persistent state.
-			var/icon/wound_icon = new /icon(puncture_dmi, wstate, hit_dir, puncture_art_frame)
-			var/image/I = image("icon" = wound_icon, "layer" = base_layer + 0.7)
-			I.dir = hit_dir
+			var/visual_key = "[wstate]/[hit_dir]"
+			for(var/obj/effects/puncture_overlay/candidate in puncture_overlay_objects)
+				if(candidate.puncture_wound == W)
+					I = candidate
+					break
+			// A state change replaces only this wound's object. That starts the
+			// new native animation without resetting unrelated wound animations.
+			if(I && I.puncture_visual_key != visual_key)
+				remove_puncture_overlay(I)
+				I = null
+			if(!I)
+				I = new /obj/effects/puncture_overlay
+				I.icon = puncture_dmi
+				I.icon_state = wstate
+				I.dir = hit_dir
+				I.puncture_wound = W
+				I.puncture_visual_key = visual_key
+				vis_contents += I
+				puncture_overlay_objects += I
+			// Changing position/layer on the existing atom does not recreate its
+			// appearance, so victim turns and clothing updates leave animation on
+			// its current native frame.
+			I.layer = base_layer + 0.7
 			I.pixel_x = a[1] - puncture_art_ax + W.puncture_jx
 			I.pixel_y = a[2] - puncture_art_ay + W.puncture_jy
-			overlays += I
-			puncture_images += I
