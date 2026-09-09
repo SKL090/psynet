@@ -553,6 +553,7 @@
 #include "code\Psynet\Clicks.dm"
 #include "code\Psynet\items.dm"
 #include "code\Psynet\NewClothes.dm"
+#include "code\Psynet\puncture.dm"
 #include "code\Psynet\turf.dm"
 #include "code\WorkInProgress\alarm.dm"
 #include "code\WorkInProgress\BrokenInhands.dm"

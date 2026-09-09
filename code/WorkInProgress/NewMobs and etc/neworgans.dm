@@ -812,6 +812,12 @@
 			S.blood_DNA = H.dna.unique_enzymes
 		S.blood_type = H.b_type
 
+	// ===== КОЛОТЫЕ РАНЫ (WoundsPlus) =====
+	// Каждый колющий удар оставляет отслеживаемую рану.
+	// Уровень (лёгкая/глубокая) зависит от нанесённого урона.
+	if(dmg_type == DAMAGE_PIERCE && brute >= 1 && owner && ishuman(owner) && !destroyed)
+		create_puncture(brute)
+
 	if(broken && owner && !destroyed)
 		owner.emote("scream")
 

@@ -13,6 +13,34 @@ MEDICAL
 		user << "You can only do that on humans"
 		return ..()
 	var/mob/living/carbon/human/MS = M
+	if(MS.bloodloss > 0)
+		var/t = user.zone_sel.selecting
+		var/datum/organ/external/temp = MS.organs["[t]"]
+		if(!temp)
+			return
+		var/stoped = 0
+		for(var/datum/organ/external/wound/W in temp.wounds)
+			if(W.bleeding)
+				W.stopbleeding()
+				MS.update_puncture_overlays()
+				stoped = 0
+				break
+		if(!stoped)
+			user << "There is no bleeding wound at [t]"
+			return
+		src.amount--
+		if (user)
+			if (M != user)
+				for (var/mob/O in viewers(MS, null))
+					O.show_message("\red [MS] has been bandaged with [src] by [user]", 1)
+			else
+				var/t_himself = "itself"
+				if (user.gender == MALE)
+					t_himself = "himself"
+				else if (user.gender == FEMALE)
+					t_himself = "herself"
+				for (var/mob/O in viewers(MS, null))
+					O.show_message("\red [MS] bandaged [t_himself] with [src]", 1)
 	var/t = user.zone_sel.selecting
 	var/datum/organ/external/temp = MS.organs["[t]"]
 	if(!temp)
