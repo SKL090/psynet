@@ -277,6 +277,7 @@
 			paralysis = 10
 
 	gurps_regen_endurance()
+	gurps_process_health()
 	gurps_fov_apply()
 
 	UpdateDamage()

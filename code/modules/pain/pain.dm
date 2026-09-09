@@ -297,35 +297,8 @@
 		paralysis = max(paralysis, 15)
 		gurps_pain_level = max(0, gurps_pain_level - 30)
 
-// ===== ВЫЗОВ handle_pain() В humanlife.dm =====
-// Добавьте эту строку в /mob/living/carbon/human/handle_regular_status_updates():
-// handle_pain()
-//
-// Пример:
-/*
-/mob/living/carbon/human/handle_regular_status_updates()
-	for(var/datum/organ/external/E in GetOrgans())
-		E.process()
-		if(E.broken)
-			if(E.name == "l hand" || E.name == "l arm")
-				if(hands && hands.dir == SOUTH && equipped())
-					drop_item()
-					emote("scream")
-			else if(E.name == "r hand" || E.name == "r arm")
-				if(hands && hands.dir == NORTH && equipped())
-					drop_item()
-					emote("scream")
-		if(E.open && (!resting) && (!sleeping))
-			emote("scream")
-			E.take_damage(20,0)
-			emote("collapse")
-			paralysis = 10
-
-	gurps_regen_endurance()
-	gurps_process_health()
-	handle_pain()  // <-- ДОБАВИТЬ ЭТУ СТРОКУ
-
-	UpdateDamage()
-	updatehealth()
-	// ... остальной код ...
-*/
+// ===== ИНТЕГРАЦИЯ В ЦИКЛ ЖИЗНИ =====
+// handle_pain() вызывается из /mob/living/carbon/Life() (code/modules/mob/living/carbon/life.dm).
+// gurps_process_health() вызывается из /mob/living/carbon/human/handle_regular_status_updates()
+// (code/WorkInProgress/NewMobs and etc/humanlife.dm).
+// Оба прокта защищены от двойного выполнения за тик.
