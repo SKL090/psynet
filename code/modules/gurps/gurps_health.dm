@@ -255,43 +255,12 @@
 		emote("scream")
 		weakened = max(weakened, 2)
 
-// ---------- БОЛЬ (ВЫЗЫВАЕТСЯ ИЗ neworgans.dm) ----------
-// Эта функция ПЕРЕОПРЕДЕЛЯЕТ базовую /mob/proc/pain() из life.dm
-/mob/living/carbon/human/pain(var/partname, var/amount, var/force = 0)
-	if(stat >= 1)
-		return
-	if(nodamage)
-		return
-
-	// Накопление боли
-	if(force)
-		gurps_pain_level += amount
-	else
-		gurps_pain_level += amount / 2
-
-	// Сообщения о боли
-	if(world.time < next_pain_time && !force)
-		return
-
-	var/msg
-	switch(amount)
-		if(1 to 10)
-			msg = "<b>Моя [partname] немножечко побаливает."
-		if(11 to 90)
-			flash_weak_pain()
-			msg = "<b><font size=1>Ouch! Your [partname] hurts."
-		if(91 to 10000)
-			flash_pain()
-			msg = "<b><font size=3>КАКАЯ ДИКАЯ БОЛЬ! Моя [partname]"
-
-	if(msg && (msg != last_pain_message || prob(10)))
-		last_pain_message = msg
-		src << msg
-	next_pain_time = world.time + max(10, 100 - amount)
-
-	// Реакция на сильную боль
-	if(amount > 30 && force)
-		emote("scream")
+// ---------- БОЛЬ ----------
+// Каноническая реализация /mob/living/carbon/human/pain()
+// находится в code/modules/pain/pain.dm (LIFEWEB-версия) и включена
+// позже в Psynet.dme, поэтому она и является действующей.
+// Упрощённая версия из gurps_health.dm удалена как мёртвый дубль,
+// который не вызывал ..() и перекрывал полноценную систему боли.
 
 // ---------- ХИРУРГИЯ ----------
 /mob/living/carbon/human/proc/gurps_surgery_fix_organ(organ)
