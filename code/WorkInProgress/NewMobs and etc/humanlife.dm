@@ -49,9 +49,13 @@
 		if(resting && weakened <= 5)
 			resting = 0
 			weakened = 0
-		gurps_try_get_up()
-		return
+			gurps_try_get_up()
+			return
 	resting = !resting
+	// FOV: сидя/лежа конуса нет, стоя — есть (аналог lying/resting
+	// в check_fov() vision cone из IS12).
+	if(fov_enabled)
+		gurps_fov_apply()
 
 /mob/living/carbon/human/proc/radiation_protection()
 	if(istype(wear_suit, /obj/item/clothing/suit/bio_suit))
