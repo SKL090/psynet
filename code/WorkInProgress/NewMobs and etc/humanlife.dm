@@ -223,7 +223,7 @@
 /mob/living/carbon/human/proc/gurps_has_pool_bleeding()
 	for(var/organ_name in organs)
 		var/datum/organ/external/E = organs[organ_name]
-		if(istype(E) && (E.artery_cut || E.destroyed)) return TRUE
+		if(istype(E) && (E.artery_cut || E.destroyed || E.gurps_finger_bleeding > 0)) return TRUE
 	return FALSE
 /mob/living/carbon/human/proc/gurps_add_blood_to_pool(amount)
 	if(amount <= 0 || !isturf(loc)) return
@@ -346,6 +346,10 @@
 			src << "\red Your face has become disfigured."
 
 	for(var/datum/organ/external/temp in organs2)
+		// Finger stumps have their own persistent rate, but use the normal
+		// bloodloss/drip/pool pipeline and normal wound treatment.
+		if(temp.gurps_finger_bleeding > 0)
+			bloodloss = max(bloodloss, temp.gurps_finger_bleeding * 3)
 		if(!temp.bleeding)
 			continue
 		else

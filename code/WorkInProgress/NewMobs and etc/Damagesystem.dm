@@ -374,6 +374,28 @@
 		else
 			stat("Защита:", "Неактивна")
 
+		var/datum/organ/external/l_hand/LH = organs["l_hand"]
+		var/datum/organ/external/r_hand/RH = organs["r_hand"]
+		stat("")
+		stat("=== КИСТИ ===")
+		if(!LH || LH.destroyed)
+			stat("Левая кисть:", "отсутствует")
+		else
+			var/left_hand_state = "[LH.fingers]/5 пальцев"
+			if(LH.gurps_finger_bleeding > 0) left_hand_state += ", кровоточит"
+			stat("Левая кисть:", left_hand_state)
+		if(!RH || RH.destroyed)
+			stat("Правая кисть:", "отсутствует")
+		else
+			var/right_hand_state = "[RH.fingers]/5 пальцев"
+			if(RH.gurps_finger_bleeding > 0) right_hand_state += ", кровоточит"
+			stat("Правая кисть:", right_hand_state)
+			var/finger_penalty = gurps_hand_finger_penalty()
+			if(finger_penalty >= 4)
+				stat("Хват активной руки:", "оружие удержать нельзя")
+			else if(finger_penalty)
+				stat("Хват активной руки:", "-[finger_penalty] к оружию и парированию")
+
 // ============================
 // ПОПАДАНИЕ ПУЛИ
 // ============================
