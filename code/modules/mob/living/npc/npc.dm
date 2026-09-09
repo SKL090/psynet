@@ -119,7 +119,11 @@ mob/living/npc/proc/Attack(mob/M,brute=0,fire=0,o2=0)
 			if(org)
 				render = "\red [src] [attackmessage] [M]\s [org.display_name]"
 				render2 = "\red [src] [attackmessage] your [org.display_name]"
-				org.take_damage(brute,fire,slashattack,superblunt)
+				// take_damage() now has an explicit damage-type argument;
+				// keep the old superblunt flag in its fifth parameter instead
+				// of accidentally treating it as a cutting damage type.
+				var/damage_type = slashattack ? DAMAGE_CUT : DAMAGE_CRUSH
+				org.take_damage(brute, fire, slashattack, damage_type, superblunt)
 				M << render2
 			M.oxyloss += o2
 		else

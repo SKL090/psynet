@@ -314,9 +314,16 @@
 	if(findtext(wname, "stiletto") || findtext(wname, "стилет"))
 		return DAMAGE_PIERCE
 
+	// Legacy edged tools already advertise this explicitly. Keep named
+	// piercers above this fallback so a screwdriver remains piercing.
+	if(W:slash)
+		return DAMAGE_CUT
+
 	if(findtext(wname, "knife") || findtext(wname, "нож"))
 		return DAMAGE_CUT
-	if(findtext(wname, "scalpel") || findtext(wname, "скальпель"))
+	// Legacy surgical tools are named "scapel" in their definitions; accept
+	// both spellings so their normal attacks remain cutting attacks.
+	if(findtext(wname, "scalpel") || findtext(wname, "scapel") || findtext(wname, "скальпель"))
 		return DAMAGE_CUT
 	if(findtext(wname, "saw") || findtext(wname, "пила"))
 		return DAMAGE_CUT
@@ -353,8 +360,12 @@
 		return (GW.get_damage_type() == DAMAGE_CUT)
 
 	var/wname = lowertext(W.name)
+	if(findtext(wname, "screwdriver") || findtext(wname, "отвёртка") || findtext(wname, "отвертка")) return 0
+	if(findtext(wname, "spear") || findtext(wname, "копьё") || findtext(wname, "копье")) return 0
+	if(findtext(wname, "stiletto") || findtext(wname, "стилет")) return 0
+	if(W:slash) return 1
 	if(findtext(wname, "knife") || findtext(wname, "нож")) return 1
-	if(findtext(wname, "scalpel") || findtext(wname, "скальпель")) return 1
+	if(findtext(wname, "scalpel") || findtext(wname, "scapel") || findtext(wname, "скальпель")) return 1
 	if(findtext(wname, "saw") || findtext(wname, "пила")) return 1
 	if(findtext(wname, "hatchet") || findtext(wname, "топор") || findtext(wname, "axe")) return 1
 	if(findtext(wname, "sword") || findtext(wname, "меч") || findtext(wname, "клинок") || findtext(wname, "blade")) return 1
@@ -532,8 +543,14 @@
 	var/original_zone = def_zone
 	def_zone = gurps_normalize_zone(def_zone)
 	var/list/zone_data = gurps_get_zone_data(def_zone)
+	var/is_deliberate_hand_cut = (dmg_type == DAMAGE_CUT && def_zone in list("l_hand", "r_hand"))
 
 	skill += zone_data["mod"]
+	// Hands remain difficult targets, but a deliberate cut needs a practical
+	// path to land; otherwise the -4 hand penalty leaves the finger system
+	// effectively unreachable for an ordinary DX 10 character.
+	if(is_deliberate_hand_cut)
+		skill += 3
 
 	if(attacker.lying || attacker.weakened) skill -= 4
 	if(target.lying || target.weakened) skill += 4

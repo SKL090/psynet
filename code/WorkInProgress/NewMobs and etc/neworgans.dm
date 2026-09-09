@@ -47,6 +47,13 @@
 	var/tendon_damaged = 0
 	var/gurps_grab_paralysis = 0
 	var/gurps_stump_bleeding = FALSE
+	// Number of untreated finger stumps on this hand. Unlike ordinary limb
+	// damage, this is a persistent source of bleeding until it is bandaged.
+	var/gurps_finger_bleeding = 0
+	// Only cutting injury contributes to this progress. Keeping it separate
+	// from brute_dam prevents an old bruise or a healed crushing hit from
+	// helping a later blade sever a finger.
+	var/gurps_finger_cut_progress = 0
 	var/gurps_next_dismember_check = 0
 	var/gurps_next_artery_check = 0
 	var/gurps_next_tendon_check = 0
@@ -86,11 +93,20 @@
 	icon_name = "wound"
 	display_name = "wound"
 	parent = null
+	// Finger stumps use normal wounds so that the existing bandage path can
+	// find and treat them, while this reference keeps their separate bleeding
+	// rate in sync with treatment.
+	var/datum/organ/external/gurps_finger_source = null
+	var/gurps_finger_stump = FALSE
 
 /datum/organ/external/wound/proc/stopbleeding()
 	if(!src.bleeding)
 		return
-	if(src.owner) src.owner:bloodloss -= 10 * src.wound_size
+	if(src.owner) src.owner:bloodloss = max(0, src.owner:bloodloss - 10 * src.wound_size)
+	if(gurps_finger_stump && gurps_finger_source)
+		gurps_finger_source.gurps_finger_bleeding = max(0, gurps_finger_source.gurps_finger_bleeding - 1)
+		if(src.owner && gurps_finger_source.gurps_finger_bleeding > 0)
+			src.owner:bloodloss = max(src.owner:bloodloss, gurps_finger_source.gurps_finger_bleeding * 3)
 	src.bleeding = 0
 	del(src)
 
@@ -210,8 +226,6 @@
 	min_broken_damage = 15
 	display_name = "left hand"
 	var/fingers = 5
-	var/list/finger_names = list("большой", "указательный", "средний", "безымянный", "мизинец")
-	var/gurps_next_finger_check = 3
 
 /datum/organ/external/l_leg
 	name = "l_leg"
@@ -241,8 +255,6 @@
 	min_broken_damage = 15
 	display_name = "right hand"
 	var/fingers = 5
-	var/list/finger_names = list("большой", "указательный", "средний", "безымянный", "мизинец")
-	var/gurps_next_finger_check = 3
 
 /datum/organ/external/r_leg
 	name = "r_leg"
@@ -388,7 +400,102 @@
 	if(isnull(fingers) || fingers >= 4) return 0
 	if(fingers == 3) return 1
 	if(fingers == 2) return 2
-	return 4
+	if(fingers == 1) return 4
+	return 6
+
+// There is deliberately no mutable type-level list of finger names here.
+// The persistent, per-hand `fingers` count determines the next name, so one
+// human can never consume names belonging to another human.
+/proc/gurps_finger_name_for_loss(loss_number)
+	switch(loss_number)
+		if(1) return "большой"
+		if(2) return "указательный"
+		if(3) return "средний"
+		if(4) return "безымянный"
+		if(5) return "мизинец"
+	return "палец"
+
+/mob/living/carbon/human/proc/gurps_drop_item_from_hand(hand_zone)
+	var/obj/item/W = null
+	if(hand_zone == "l_hand") W = l_hand
+	else if(hand_zone == "r_hand") W = r_hand
+	if(!W) return null
+
+	var/old_hand = hand
+	hand = (hand_zone == "l_hand")
+	drop_item()
+	hand = old_hand
+	update_hand_hud()
+	return W
+
+/datum/organ/external/proc/gurps_add_finger_stump_wound()
+	if(!owner || !ishuman(owner)) return
+	var/datum/organ/external/wound/W = new
+	W.bleeding = 1
+	W.wound_size = 1
+	W.owner = owner
+	W.gurps_finger_stump = TRUE
+	W.gurps_finger_source = src
+	wounds += W
+
+/datum/organ/external/proc/gurps_apply_finger_cut(cutting_damage)
+	if(cutting_damage <= 0 || destroyed || !(name in list("l_hand", "r_hand")))
+		return 0
+	if(!owner || !ishuman(owner))
+		return 0
+	var/mob/living/carbon/human/H = owner
+
+	var/fingers = src:fingers
+	if(!fingers || fingers <= 0)
+		return 0
+
+	// The threshold is based only on injury delivered by cutting attacks after
+	// the hand damage cap has been applied in take_damage().
+	gurps_finger_cut_progress += cutting_damage
+	var/fingers_to_cut = 0
+	while(gurps_finger_cut_progress >= 3 && fingers > 0)
+		gurps_finger_cut_progress -= 3
+		var/finger_name = gurps_finger_name_for_loss(6 - fingers)
+		var/obj/item/weapon/organ/finger/F = new(H.loc)
+		F.name = "отрезанный [finger_name] палец [H.real_name]"
+		F.icon_state = pick("finger1", "finger2", "finger3")
+		F.add_blood(H)
+		F.pixel_x = rand(-8, 8)
+		F.pixel_y = rand(-8, 8)
+		H.visible_message(
+			"<span class='danger'><B>[H] теряет [finger_name] палец!</B></span>",
+			"<span class='danger'><B>Вам отрезает [finger_name] палец!</B></span>"
+		)
+		fingers--
+		fingers_to_cut++
+
+	if(!fingers_to_cut)
+		return 0
+
+	src:fingers = fingers
+	gurps_finger_bleeding += fingers_to_cut
+	for(var/i = 1 to fingers_to_cut)
+		gurps_add_finger_stump_wound()
+
+	var/hand_text = (name == "l_hand") ? "левой" : "правой"
+	H.bloodloss = max(H.bloodloss, gurps_finger_bleeding * 3)
+	H.gurps_spill_blood_to_pool(fingers_to_cut * 5)
+	var/obj/decal/cleanable/blood/splatter/S = new(H.loc)
+	if(H.dna) S.blood_DNA = H.dna.unique_enzymes
+	S.blood_type = H.b_type
+	H.pain(display_name, 50 + fingers_to_cut * 10, 1)
+	H << "<span class='danger'>На [hand_text] кисти осталось [fingers] из 5 пальцев. Культи кровоточат.</span>"
+	H.UpdateDamageIcon()
+
+	if(fingers <= 2)
+		var/obj/item/dropped_item = H.gurps_drop_item_from_hand(name)
+		if(dropped_item)
+			H.visible_message(
+				"<span class='danger'>[H] роняет [dropped_item]: пальцев на [hand_text] кисти слишком мало.</span>",
+				"<span class='danger'>Вы роняете [dropped_item]: пальцев на [hand_text] кисти слишком мало.</span>"
+			)
+
+	return fingers_to_cut
 
 // ============================
 // GURPS take_damage
@@ -529,38 +636,10 @@
 					if(name in list("l_leg", "r_leg")) H.weakened = max(H.weakened, 5)
 
 	// ===== ПАЛЬЦЫ (ТОЛЬКО РЕЖУЩЕЕ) =====
-	// Fingers are small targets: every 3 points of accumulated cutting injury
-	// can sever them. No HT roll is used after the hand has been hit this deeply.
-	if(dmg_type == DAMAGE_CUT && name in list("l_hand", "r_hand") && !destroyed)
-		var/datum/organ/external/l_hand/LH = (name == "l_hand") ? src : null
-		var/datum/organ/external/r_hand/RH = (name == "r_hand") ? src : null
-		var/fingers = LH ? LH.fingers : RH.fingers
-		var/next_finger_check = LH ? LH.gurps_next_finger_check : RH.gurps_next_finger_check
-		if(fingers > 0 && old_brute_damage + brute >= next_finger_check)
-			if(LH) LH.gurps_next_finger_check += 3
-			else RH.gurps_next_finger_check += 3
-			var/fingers_to_cut = min(fingers, max(1, round(brute / 3)))
-			var/list/names = LH ? LH.finger_names : RH.finger_names
-			if(owner && ishuman(owner))
-				var/mob/living/carbon/human/H = owner
-				for(var/i = 1 to fingers_to_cut)
-					var/finger_name = pick(names)
-					names -= finger_name
-					var/obj/item/weapon/organ/finger/F = new(H.loc)
-					F.name = "отрезанный [finger_name] палец [H.real_name]"
-					F.icon_state = pick("finger1", "finger2", "finger3")
-					F.add_blood(H)
-					F.pixel_x = rand(-8, 8)
-					F.pixel_y = rand(-8, 8)
-					H.visible_message("<span class='danger'><B>[H] теряет [finger_name] палец!</B></span>", "<span class='danger'><B>Вам отрезает [finger_name] палец!</B></span>")
-				if(LH) LH.fingers--
-				else RH.fingers--
-				H.bloodloss += fingers_to_cut * 3
-				var/obj/decal/cleanable/blood/splatter/S = new(H.loc)
-				if(H.dna) S.blood_DNA = H.dna.unique_enzymes
-				S.blood_type = H.b_type
-				H.pain(display_name, 50 + fingers_to_cut * 10, 1)
-				if((LH && LH.fingers <= 2) || (RH && RH.fingers <= 2)) H.drop_item()
+	// This is deliberately independent from aggregate brute_dam. Only actual
+	// post-cap cutting injury can advance a partially severed finger.
+	if(dmg_type == DAMAGE_CUT && brute > 0)
+		gurps_apply_finger_cut(brute)
 
 	// ===== GURPS 4e: FRACTURE THRESHOLD =====
 	// More than HP/2 injury to a limb or HP/3 to a hand/foot breaks it.
