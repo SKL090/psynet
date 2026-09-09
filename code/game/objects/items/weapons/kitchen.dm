@@ -139,6 +139,9 @@ SPOON
 		usr << "\red You accidentally cut yourself with the [src]."
 		usr.bruteloss += 20
 		return
+	// This override used to swallow ordinary knife attacks, bypassing the
+	// GURPS cutting path whenever attack() was used directly.
+	return ..()
 
 
 // SPOON

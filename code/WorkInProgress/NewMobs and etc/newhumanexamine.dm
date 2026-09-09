@@ -78,6 +78,17 @@
 		else
 			usr << "\blue [capitalize(t_he)] носит карту \icon[wear_id] [wear_id.name]."
 
+	var/datum/organ/external/l_hand/LH = organs["l_hand"]
+	var/datum/organ/external/r_hand/RH = organs["r_hand"]
+	if(LH && !LH.destroyed && LH.fingers < 5)
+		usr << "\red На левой кисти [name] осталось [LH.fingers] из 5 пальцев."
+		if(LH.gurps_finger_bleeding > 0)
+			usr << "\red Культи пальцев на левой кисти [name] кровоточат."
+	if(RH && !RH.destroyed && RH.fingers < 5)
+		usr << "\red На правой кисти [name] осталось [RH.fingers] из 5 пальцев."
+		if(RH.gurps_finger_bleeding > 0)
+			usr << "\red Культи пальцев на правой кисти [name] кровоточат."
+
 	if (is_jittery)
 		switch(jitteriness)
 			if(300 to INFINITY)

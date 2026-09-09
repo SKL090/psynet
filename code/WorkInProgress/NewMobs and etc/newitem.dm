@@ -88,20 +88,26 @@
 	if (user.hand)
 		if(ishuman(user))
 			var/datum/organ/external/temp = user:organs["l_hand"]
-			if(!temp.destroyed)
+			if(!temp.destroyed && temp:fingers > 0)
 				user.l_hand = src
-			else
+			else if(temp.destroyed)
 				user << "\blue You pick \the [src] up with your ha- wait a minute."
+				return
+			else
+				user << "\red На левой кисти не осталось пальцев, чтобы удержать [src]."
 				return
 		else
 			user.l_hand = src
 	else
 		if(ishuman(user))
 			var/datum/organ/external/temp = user:organs["r_hand"]
-			if(!temp.destroyed)
+			if(!temp.destroyed && temp:fingers > 0)
 				user.r_hand = src
-			else
+			else if(temp.destroyed)
 				user << "\blue You pick \the [src] up with your ha- wait a minute."
+				return
+			else
+				user << "\red На правой кисти не осталось пальцев, чтобы удержать [src]."
 				return
 		else
 			user.r_hand = src
@@ -147,7 +153,18 @@
 	if (!def_zone)
 		var/t = user:zone_sel?.selecting
 		if(t in list("eyes","mouth")) t = "head"
-		def_zone = ran_zone(t ? t : "chest")
+		// A selected hand is an intentional cutting target. Do not send that
+		// action through ran_zone(), which otherwise makes this feature depend
+		// on another random hand hit before the GURPS attack roll even happens.
+		var/is_deliberate_hand_cut = FALSE
+		if(istype(src, /obj/item/weapon))
+			var/obj/item/weapon/W = src
+			if(t in list("l_hand", "r_hand") && gurps_get_weapon_dmg_type(W) == DAMAGE_CUT)
+				is_deliberate_hand_cut = TRUE
+		if(is_deliberate_hand_cut)
+			def_zone = t
+		else
+			def_zone = ran_zone(t ? t : "chest")
 
 	if (istype(M, /mob/living/carbon/human) && istype(user, /mob/living/carbon/human))
 		gurps_weapon_attack(user, M, src, def_zone)

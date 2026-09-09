@@ -374,6 +374,28 @@
 		else
 			stat("Защита:", "Неактивна")
 
+		var/datum/organ/external/l_hand/LH = organs["l_hand"]
+		var/datum/organ/external/r_hand/RH = organs["r_hand"]
+		stat("")
+		stat("=== КИСТИ ===")
+		if(!LH || LH.destroyed)
+			stat("Левая кисть:", "отсутствует")
+		else
+			var/left_hand_state = "[LH.fingers]/5 пальцев"
+			if(LH.gurps_finger_bleeding > 0) left_hand_state += ", кровоточит"
+			stat("Левая кисть:", left_hand_state)
+		if(!RH || RH.destroyed)
+			stat("Правая кисть:", "отсутствует")
+		else
+			var/right_hand_state = "[RH.fingers]/5 пальцев"
+			if(RH.gurps_finger_bleeding > 0) right_hand_state += ", кровоточит"
+			stat("Правая кисть:", right_hand_state)
+			var/finger_penalty = gurps_hand_finger_penalty()
+			if(finger_penalty >= 4)
+				stat("Хват активной руки:", "оружие удержать нельзя")
+			else if(finger_penalty)
+				stat("Хват активной руки:", "-[finger_penalty] к оружию и парированию")
+
 // ============================
 // ПОПАДАНИЕ ПУЛИ
 // ============================
@@ -1386,6 +1408,10 @@
 		overlays += image("icon" = 'icons/effects/genetics.dmi', "icon_state" = "[mutantrace]_t", "layer" = body_layer)
 
 	update_puncture_overlays()
+	// FOV: lying/resting сменился вместе со спрайтом (ср. синхронизацию
+	// gurps_visual_lying выше) — конус зрения пересчитываем/скрываем.
+	if(fov_enabled)
+		gurps_fov_apply()
 
 // ============================
 // АТАКИ РУКОЙ И ОРУЖИЕМ
@@ -1914,9 +1940,8 @@
 				var/obj/decal/cleanable/blood/tracks/TR = new(T)
 				TR.blood_DNA = dna?.unique_enzymes
 				TR.blood_type = b_type
-
-		if(fov_enabled)
-			gurps_fov_apply()
+	// FOV обновляется в базовом /mob/living/Move() (FOV.dm):
+	// и собственный конус, и конусы всех, кто видит нас.
 
 // ============================
 // СМЕРТЬ
