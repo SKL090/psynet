@@ -1068,12 +1068,7 @@
 				limb_layer = body_layer + 0.2
 
 			var/icon/limb_icon = new /icon('icons/mob/human.dmi', "[O.icon_name]_[g][state]")
-			if(s_tone >= 0)
-				limb_icon.Blend(rgb(s_tone, s_tone, s_tone), ICON_ADD)
-			else
-				limb_icon.Blend(rgb(-s_tone, -s_tone, -s_tone), ICON_SUBTRACT)
-			if(zombie || pale)
-				limb_icon.Blend(rgb(100,100,100))
+			apply_skin_color(limb_icon)
 
 			overlays += image("icon" = limb_icon, "layer" = limb_layer)
 
@@ -1683,6 +1678,18 @@
 		if ("Hogan") face_icon_state = "facial_hogan"
 		else face_icon_state = "bald"
 
+// Use the same skin tint for rebuilt body icons and individual limb overlays.
+/mob/living/carbon/human/proc/apply_skin_color(icon/I)
+	if(s_tone >= 0)
+		I.Blend(rgb(s_tone, s_tone, s_tone), ICON_ADD)
+	else
+		I.Blend(rgb(-s_tone, -s_tone, -s_tone), ICON_SUBTRACT)
+
+	if(zombie)
+		I.Blend(rgb(100,100,100), ICON_ADD)
+	else if(pale)
+		I.Blend("#8caea4", ICON_MULTIPLY)
+
 /mob/living/carbon/human/proc/update_body()
 	if(stand_icon) del(stand_icon)
 	if(lying_icon) del(lying_icon)
@@ -1709,16 +1716,8 @@
 		stand_icon.Blend(new /icon('icons/mob/human.dmi', "husk_s"), ICON_OVERLAY)
 		lying_icon.Blend(new /icon('icons/mob/human.dmi', "husk_l"), ICON_OVERLAY)
 
-	if(s_tone >= 0)
-		stand_icon.Blend(rgb(s_tone, s_tone, s_tone), ICON_ADD)
-		lying_icon.Blend(rgb(s_tone, s_tone, s_tone), ICON_ADD)
-	else
-		stand_icon.Blend(rgb(-s_tone, -s_tone, -s_tone), ICON_SUBTRACT)
-		lying_icon.Blend(rgb(-s_tone, -s_tone, -s_tone), ICON_SUBTRACT)
-
-	if(zombie || pale)
-		stand_icon.Blend(rgb(100,100,100))
-		lying_icon.Blend(rgb(100,100,100))
+	apply_skin_color(stand_icon)
+	apply_skin_color(lying_icon)
 
 /mob/living/carbon/human/proc/update_face()
 	if(organs)
