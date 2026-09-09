@@ -44,6 +44,11 @@ var/puncture_building = 0
 // Пиксель-ранка внутри арта раны (ищем #970004 в 1bullet_south, fallback ниже).
 var/puncture_art_ax = 2
 var/puncture_art_ay = 7
+// bullet_* states contain a four-frame bleeding animation. A wound overlay
+// is rebuilt together with clothing, so playing that state directly would
+// restart the animation and make the persistent wound flash. Keep frame 1,
+// the stable injury mark, for the persistent overlay.
+var/puncture_art_frame = 1
 
 /datum/organ/external/wound
 	var/puncture_level = 0	// 0 - не колотая, 1 - лёгкая, 2 - средняя, 3 - глубокая
@@ -234,7 +239,11 @@ var/puncture_art_ay = 7
 				wstate = "obullet_[hit_dtext]"
 			else
 				wstate = "[prefix]_[hit_dtext]"
-			var/image/I = image(puncture_dmi, null, wstate, base_layer + 0.7, hit_dir)
+			// Freeze the wound marker on the first frame. The remaining DMI
+			// frames are a short blood-trail animation, not persistent state.
+			var/icon/wound_icon = new /icon(puncture_dmi, wstate, hit_dir, puncture_art_frame)
+			var/image/I = image("icon" = wound_icon, "layer" = base_layer + 0.7)
+			I.dir = hit_dir
 			I.pixel_x = a[1] - puncture_art_ax + W.puncture_jx
 			I.pixel_y = a[2] - puncture_art_ay + W.puncture_jy
 			overlays += I
