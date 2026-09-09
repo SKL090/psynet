@@ -270,6 +270,17 @@
 // ДОПОЛНИТЕЛЬНЫЕ ЭФФЕКТЫ
 // ============================
 
+// ---------- ОБМОРОК ПРИ РАЗРЫВЕ СОННОЙ АРТЕРИИ ----------
+// Разрыв сонной артерии мгновенно лишает сознания на 30 секунд.
+// 30 секунд = 60 тиков при world.tick_lag = 0.5 (code/Ticklag.dm).
+/proc/gurps_neck_artery_knockout(mob/living/carbon/human/H)
+	if(!H || H.stat == 2) return
+	H.paralysis = max(H.paralysis, 60)
+	H.visible_message(
+		"<span class='danger'><B>[H] теряет сознание от разрыва сонной артерии!</B></span>",
+		"<span class='danger'><B>Вы теряете сознание от разрыва сонной артерии!</B></span>"
+	)
+
 /proc/gurps_process_hit_effects(mob/living/carbon/human/target, zone, damage, dmg_type, is_crit, obj/item/weapon, mob/living/carbon/human/attacker)
 	if(!target || !zone) return ""
 	if(target.stat == 2) return ""
@@ -315,7 +326,7 @@
 				)
 				gurps_spawn_artery_spray(target)
 				target.losebreath += 10
-				if(prob(40)) target.paralysis = max(target.paralysis, 15)
+				gurps_neck_artery_knockout(target)
 				if(prob(20)) target.emote("gasp")
 
 		if(!has_effect && damage >= 5 && prob(damage * 3.0))

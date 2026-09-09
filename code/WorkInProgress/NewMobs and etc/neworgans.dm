@@ -506,7 +506,7 @@
 					if(name == "neck")
 						playsound(H.loc, pick('sound/voice/throat.ogg', 'sound/voice/throat2.ogg', 'sound/voice/throat3.ogg'), 70, 1)
 						H.oxyloss += 5
-						if(prob(30)) H.paralysis = max(H.paralysis, 10)
+						gurps_neck_artery_knockout(H)
 
 	// ===== СУХОЖИЛИЯ (режущее) =====
 	// A sufficiently deep accumulated cut requires a failed HT roll to damage a tendon.
