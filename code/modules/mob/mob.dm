@@ -242,18 +242,22 @@ proc/iszombie(A)
 	return 0
 /proc/hsl2rgb(h, s, l)
 	return
+// Явный поворот моба; прямое присваивание dir этот хук не вызывает.
+/mob/proc/set_dir(new_dir)
+	dir = new_dir
+
 mob/verb/turnnorth()
 	set hidden = 1
-	dir = NORTH
+	set_dir(NORTH)
 mob/verb/turnsouth()
 	set hidden = 1
-	dir = SOUTH
+	set_dir(SOUTH)
 mob/verb/turneast()
 	set hidden = 1
-	dir = EAST
+	set_dir(EAST)
 mob/verb/turnwest()
 	set hidden = 1
-	dir = WEST
+	set_dir(WEST)
 /proc/ran_zone(zone, probability)
 
 	if (probability == null)
@@ -1877,7 +1881,7 @@ mob/verb/turnwest()
 	if (mob.canmove)
 
 		if(mob.m_intent == "face")
-			mob.dir = direct
+			mob.set_dir(direct)
 
 		var/j_pack = 0
 		if ((istype(mob.loc, /turf/space)))
@@ -1906,7 +1910,7 @@ mob/verb/turnwest()
 						move_delay += 6
 					move_delay += 1
 				if("face")
-					mob.dir = direct
+					mob.set_dir(direct)
 					return
 				if("walk")
 					move_delay += 4
