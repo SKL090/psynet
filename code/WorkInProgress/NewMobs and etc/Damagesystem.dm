@@ -1385,6 +1385,11 @@
 	if(mutantrace && !lying)
 		overlays += image("icon" = 'icons/effects/genetics.dmi', "icon_state" = "[mutantrace]_t", "layer" = body_layer)
 
+	// FOV: lying/resting сменился вместе со спрайтом (ср. синхронизацию
+	// gurps_visual_lying выше) — конус зрения пересчитываем/скрываем.
+	if(fov_enabled)
+		gurps_fov_apply()
+
 // ============================
 // АТАКИ РУКОЙ И ОРУЖИЕМ
 // ============================
@@ -1912,9 +1917,8 @@
 				var/obj/decal/cleanable/blood/tracks/TR = new(T)
 				TR.blood_DNA = dna?.unique_enzymes
 				TR.blood_type = b_type
-
-		if(fov_enabled)
-			gurps_fov_apply()
+	// FOV обновляется в базовом /mob/living/Move() (FOV.dm):
+	// и собственный конус, и конусы всех, кто видит нас.
 
 // ============================
 // СМЕРТЬ
