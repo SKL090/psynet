@@ -399,7 +399,7 @@
 // ============================
 // ПОПАДАНИЕ ПУЛИ
 // ============================
-/mob/living/carbon/human/bullet_act(flag, A as obj)
+/mob/living/carbon/human/bullet_act(flag, var/obj/A)
 	var/shielded = 0
 
 	for(var/obj/item/device/shield/S in src)
