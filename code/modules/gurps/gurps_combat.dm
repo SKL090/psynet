@@ -611,7 +611,7 @@
 					var/ricochet_damage = max(1, round(weapon.force * 0.4))
 					ricochet_damage = round(ricochet_damage * gurps_get_zone_data(ricochet_zone)["dmg_mult"] * 0.4)
 
-					RE.take_damage(ricochet_damage, 0, is_slash, dmg_type, 0)
+					RE.take_damage(ricochet_damage, 0, is_slash, dmg_type, 0, get_dir(target, attacker))
 
 					if(istype(weapon, /obj/item/weapon/gurps))
 						var/obj/item/weapon/gurps/GW = weapon
@@ -675,7 +675,7 @@
 	var/was_artery = E.artery_cut
 	var/was_tendon = E.tendon_damaged
 
-	E.take_damage(damage, 0, is_slash, dmg_type, is_crit)
+	E.take_damage(damage, 0, is_slash, dmg_type, is_crit, get_dir(target, attacker))
 	gurps_apply_rear_hit(attacker, target, def_zone, damage, dmg_type)
 
 	if(weapon && istype(weapon, /obj/item/weapon/gurps))

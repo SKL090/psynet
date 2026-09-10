@@ -292,7 +292,7 @@
 			var/was_tendon = E.tendon_damaged
 
 			var/damage = gurps_damage + (H.gurps_strength - 10) / 2
-			E.take_damage(damage, 0, 0, gurps_damage_type, attack["crit"])
+			E.take_damage(damage, 0, 0, gurps_damage_type, attack["crit"], get_dir(target_human, H))
 			target_human.UpdateDamageIcon()
 			target_human.updatehealth()
 			target_human.lastattacker = H
@@ -672,7 +672,7 @@
 			var/was_tendon = E.tendon_damaged
 
 			var/damage = gurps_damage + (H.gurps_strength - 10) / 2
-			E.take_damage(damage, 0, 0, gurps_damage_type, attack["crit"])
+			E.take_damage(damage, 0, 0, gurps_damage_type, attack["crit"], get_dir(target_human, H))
 			target_human.UpdateDamageIcon()
 			target_human.updatehealth()
 			target_human.lastattacker = H
