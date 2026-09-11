@@ -59,19 +59,12 @@ var/puncture_art_ay = 7
 	var/puncture_jy = 0	// случайный сдвиг точки раны ОТ ЦЕНТРА зоны (по Y)
 	var/puncture_offset_set = 0	// сдвиг уже выбран (не перевыбирать при повороте)
 
-/mob/living/carbon/human/var/list/puncture_overlay_objects = list()
-
-// Animated DMI states do not play reliably when used as atom overlays.
-// A vis_contents object is a real atom, so BYOND can advance its animation
-// without update_clothing() restarting it.
-/obj/effects/puncture_overlay
-	name = "puncture wound"
-	icon = 'icons/mob/woundsplus.dmi'
-	anchored = 1
-	density = 0
-	mouse_opacity = 0
-	var/datum/organ/external/wound/puncture_wound
-	var/puncture_visual_key
+// Каждый кадр update_clothing() заново собирает overlays, поэтому раны
+// рисуются обычными image-оверлеями и хранятся здесь отдельно, чтобы их
+// можно было снять и перерисовать. Так рана гарантированно остаётся видимой
+// (в отличие от объектов в vis_contents, которые могли "теряться" после
+// пересборки внешности персонажа и появлялись только после нового удара).
+/mob/living/carbon/human/var/list/puncture_overlay_images = list()
 
 // ---------- ПОСТРОЕНИЕ ТАБЛИЦЫ ЯКОРЕЙ ----------
 // Один раз сканируем bodymask каждого типа тела и направления,
@@ -234,16 +227,11 @@ var/puncture_art_ay = 7
 
 // ---------- ОТРИСОВКА ----------
 // Безопасно вызывать отдельно и в конце update_clothing().
-// Визуальные объекты заменяются только при изменении самой раны или её
-// DMI-состояния; обычное обновление одежды и поворот лишь меняют положение
-// уже существующего объекта, поэтому его native DMI-анимация не сбивается.
-/mob/living/carbon/human/proc/remove_puncture_overlay(obj/effects/puncture_overlay/I)
-	if(!I)
-		return
-	vis_contents -= I
-	puncture_overlay_objects -= I
-	del(I)
-
+// Раны рисуются обычными image-оверлеями в списке overlays персонажа.
+// update_clothing() каждый тик пересобирает overlays с нуля и затем снова
+// вызывает этот proc, поэтому раны гарантированно видны и не "теряются" —
+// раньше использовались объекты vis_contents, которые переставали отображаться
+// через несколько секунд и появлялись только после нового удара.
 /mob/living/carbon/human/proc/update_puncture_overlays()
 	puncture_ensure_anchors()
 	if(!puncture_anchors)
@@ -256,21 +244,13 @@ var/puncture_art_ay = 7
 	var/is_lying = lying ? 1 : 0
 	var/base_layer = is_lying ? (MOB_LAYER - 1) : MOB_LAYER
 
-	// Remove only wounds which no longer exist. Existing wound objects remain
-	// in vis_contents, so update_clothing() cannot restart their animation.
-	var/list/active_wounds = list()
-	for(var/zone in organs)
-		var/datum/organ/external/O = organs[zone]
-		if(!istype(O) || O.destroyed || !O.wounds || !O.wounds.len)
-			continue
-		if(!(zone in puncture_zone_colors))
-			continue
-		for(var/datum/organ/external/wound/W in O.wounds)
-			if(W.puncture_level)
-				active_wounds += W
-	for(var/obj/effects/puncture_overlay/existing in puncture_overlay_objects.Copy())
-		if(!(existing.puncture_wound in active_wounds))
-			remove_puncture_overlay(existing)
+	// Снимаем раны, нарисованные в прошлый раз. При вызове из update_clothing()
+	// overlays уже очищены (overlays = null), поэтому вычитание безопасно и
+	// просто ничего не находит; при вызове из create_puncture()/bandage это
+	// убирает старый спрайт раны перед отрисовкой актуальных.
+	for(var/image/WI in puncture_overlay_images)
+		overlays -= WI
+	puncture_overlay_images = list()
 
 	for(var/zone in organs)
 		var/datum/organ/external/O = organs[zone]
@@ -279,20 +259,15 @@ var/puncture_art_ay = 7
 		if(!(zone in puncture_zone_colors))
 			continue
 		var/list/a = puncture_anchor(state, body_dir, zone, is_lying)
+		if(!a || a.len < 2)
+			// У этого типа тела нет якоря для зоны — рану просто не рисуем,
+			// но не оставляем её на старом месте.
+			continue
 		for(var/datum/organ/external/wound/W in O.wounds)
 			if(!W.puncture_level)
 				continue
 			var/prefix = puncture_state_prefix[W.puncture_level]
 			if(!prefix)
-				continue
-			var/obj/effects/puncture_overlay/I
-			if(!a || a.len < 2)
-				// The old object must not remain at the previous body position if
-				// this body type has no anchor for the zone.
-				for(var/obj/effects/puncture_overlay/candidate in puncture_overlay_objects)
-					if(candidate.puncture_wound == W)
-						remove_puncture_overlay(candidate)
-						break
 				continue
 			// Do not replace this with body_dir: two wounds on one body part
 			// may have arrived from different sides and must keep their own art.
@@ -309,34 +284,6 @@ var/puncture_art_ay = 7
 				wstate = "obullet_[hit_dtext]"
 			else
 				wstate = "[prefix]_[hit_dtext]"
-			var/visual_key = "[wstate]/[hit_dir]"
-			for(var/obj/effects/puncture_overlay/candidate in puncture_overlay_objects)
-				if(candidate.puncture_wound == W)
-					I = candidate
-					break
-			// A state change replaces only this wound's object. That starts the
-			// new native animation without resetting unrelated wound animations.
-			if(I && I.puncture_visual_key != visual_key)
-				remove_puncture_overlay(I)
-				I = null
-			if(!I)
-				I = new /obj/effects/puncture_overlay
-				I.icon = puncture_dmi
-				I.icon_state = wstate
-				I.dir = hit_dir
-				I.puncture_wound = W
-				I.puncture_visual_key = visual_key
-				// Выставим позицию ниже принудительно при первом появлении.
-				I.pixel_x = 32767
-				I.pixel_y = 32767
-				vis_contents += I
-				puncture_overlay_objects += I
-			// Позицию и слой трогаем ТОЛЬКО когда они реально изменились.
-			// update_clothing() дёргает этот код каждый тик; любая запись в
-			// pixel_x/pixel_y/layer создаёт новое appearance, что перезапускает
-			// анимацию раны и заставляет её мигать. Нетронутый объект спокойно
-			// проигрывает свой drip-цикл без сброса.
-			var/new_layer = base_layer + 0.7
 			// Точку раны выбираем ОДИН раз: случайный пиксель зоны во фронтальном
 			// виде. Сдвиг считаем от центра зоны, чтобы рана оставалась на том же
 			// месте тела и при повороте персонажа (центр для других направлений
@@ -357,7 +304,10 @@ var/puncture_art_ay = 7
 			// сдвигаются вместе с ним.
 			var/new_x = a[1] - puncture_art_ax + W.puncture_jx
 			var/new_y = a[2] - puncture_art_ay + W.puncture_jy
-			if(I.pixel_x != new_x || I.pixel_y != new_y || I.layer != new_layer)
-				I.pixel_x = new_x
-				I.pixel_y = new_y
-				I.layer = new_layer
+			var/image/I = image("icon" = puncture_dmi, "icon_state" = wstate)
+			I.dir = hit_dir
+			I.pixel_x = new_x
+			I.pixel_y = new_y
+			I.layer = base_layer + 0.7
+			overlays += I
+			puncture_overlay_images += I
